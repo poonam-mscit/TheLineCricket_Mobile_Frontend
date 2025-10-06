@@ -1,9 +1,8 @@
 import { Text } from '@/components/Themed';
-import { useColorScheme } from '@/components/useColorScheme';
 import { getColors } from '@/constants/Colors';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { FlatList, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native';
 
 interface Message {
   id: string;

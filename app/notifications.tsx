@@ -1,9 +1,8 @@
 import { Text } from '@/components/Themed';
-import { useColorScheme } from '@/components/useColorScheme';
 import { getColors } from '@/constants/Colors';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native';
 
 interface Notification {
   id: string;
@@ -643,7 +642,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: getColors(colorScheme).border,
+    backgroundColor: '#e0e0e0',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -668,7 +667,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: getColors(colorScheme).error,
+    backgroundColor: '#ff4757',
     marginLeft: 8,
   },
   notificationMessage: {

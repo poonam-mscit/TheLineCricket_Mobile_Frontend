@@ -1,9 +1,8 @@
 import { Text } from '@/components/Themed';
-import { useColorScheme } from '@/components/useColorScheme';
 import { getColors } from '@/constants/Colors';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
 
 // Import existing components
 import { CreateMatchBox } from '@/components/ui/CreateMatchBox';

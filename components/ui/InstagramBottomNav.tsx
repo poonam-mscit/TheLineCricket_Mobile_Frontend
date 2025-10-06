@@ -1,5 +1,5 @@
 import { Text } from '@/components/Themed';
-import { useColorScheme } from '@/components/useColorScheme';
+import { useColorScheme } from 'react-native';
 import { getColors } from '@/constants/Colors';
 import React, { useState } from 'react';
 import { Modal, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';

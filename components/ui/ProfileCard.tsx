@@ -1,5 +1,5 @@
 import { Text } from '@/components/Themed';
-import { useColorScheme } from '@/components/useColorScheme';
+import { useColorScheme } from 'react-native';
 import { getColors } from '@/constants/Colors';
 import React from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
