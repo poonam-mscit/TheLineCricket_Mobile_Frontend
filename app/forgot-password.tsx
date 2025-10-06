@@ -1,6 +1,6 @@
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
@@ -69,21 +69,21 @@ export default function ForgotPasswordScreen() {
 
   const renderStep1 = () => (
     <>
-      <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]}>
+      <Text style={[styles.title, { color: getColors(colorScheme).text }]}>
         Forgot Password?
       </Text>
-      <Text style={[styles.subtitle, { color: Colors[colorScheme ?? 'light'].text }]}>
+      <Text style={[styles.subtitle, { color: getColors(colorScheme).text }]}>
         Enter your email address and we'll send you a reset code
       </Text>
 
       <View style={styles.inputContainer}>
-        <Text style={[styles.label, { color: Colors[colorScheme ?? 'light'].text }]}>
+        <Text style={[styles.label, { color: getColors(colorScheme).text }]}>
           Email
         </Text>
         <TextInput
           style={[styles.input, { 
-            backgroundColor: Colors[colorScheme ?? 'light'].card,
-            color: Colors[colorScheme ?? 'light'].text,
+            backgroundColor: getColors(colorScheme).card,
+            color: getColors(colorScheme).text,
             borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
           }]}
           placeholder="Enter your email"
@@ -97,7 +97,7 @@ export default function ForgotPasswordScreen() {
       </View>
 
       <TouchableOpacity 
-        style={[styles.button, { backgroundColor: Colors[colorScheme ?? 'light'].tint }]}
+        style={[styles.button, { backgroundColor: getColors(colorScheme).tint }]}
         onPress={handleSendResetCode}
       >
         <Text style={styles.buttonText}>Send Reset Code</Text>
@@ -107,21 +107,21 @@ export default function ForgotPasswordScreen() {
 
   const renderStep2 = () => (
     <>
-      <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]}>
+      <Text style={[styles.title, { color: getColors(colorScheme).text }]}>
         Enter Reset Code
       </Text>
-      <Text style={[styles.subtitle, { color: Colors[colorScheme ?? 'light'].text }]}>
+      <Text style={[styles.subtitle, { color: getColors(colorScheme).text }]}>
         We've sent a 6-digit code to {email}
       </Text>
 
       <View style={styles.inputContainer}>
-        <Text style={[styles.label, { color: Colors[colorScheme ?? 'light'].text }]}>
+        <Text style={[styles.label, { color: getColors(colorScheme).text }]}>
           Reset Code
         </Text>
         <TextInput
           style={[styles.input, { 
-            backgroundColor: Colors[colorScheme ?? 'light'].card,
-            color: Colors[colorScheme ?? 'light'].text,
+            backgroundColor: getColors(colorScheme).card,
+            color: getColors(colorScheme).text,
             borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
           }]}
           placeholder="Enter 6-digit code"
@@ -134,7 +134,7 @@ export default function ForgotPasswordScreen() {
       </View>
 
       <TouchableOpacity 
-        style={[styles.button, { backgroundColor: Colors[colorScheme ?? 'light'].tint }]}
+        style={[styles.button, { backgroundColor: getColors(colorScheme).tint }]}
         onPress={handleVerifyResetCode}
       >
         <Text style={styles.buttonText}>Verify Code</Text>
@@ -146,7 +146,7 @@ export default function ForgotPasswordScreen() {
           Alert.alert('Code Resent', 'A new reset code has been sent to your email');
         }}
       >
-        <Text style={[styles.resendText, { color: Colors[colorScheme ?? 'light'].tint }]}>
+        <Text style={[styles.resendText, { color: getColors(colorScheme).tint }]}>
           Resend Code
         </Text>
       </TouchableOpacity>
@@ -155,21 +155,21 @@ export default function ForgotPasswordScreen() {
 
   const renderStep3 = () => (
     <>
-      <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]}>
+      <Text style={[styles.title, { color: getColors(colorScheme).text }]}>
         Create New Password
       </Text>
-      <Text style={[styles.subtitle, { color: Colors[colorScheme ?? 'light'].text }]}>
+      <Text style={[styles.subtitle, { color: getColors(colorScheme).text }]}>
         Enter your new password
       </Text>
 
       <View style={styles.inputContainer}>
-        <Text style={[styles.label, { color: Colors[colorScheme ?? 'light'].text }]}>
+        <Text style={[styles.label, { color: getColors(colorScheme).text }]}>
           New Password
         </Text>
         <TextInput
           style={[styles.input, { 
-            backgroundColor: Colors[colorScheme ?? 'light'].card,
-            color: Colors[colorScheme ?? 'light'].text,
+            backgroundColor: getColors(colorScheme).card,
+            color: getColors(colorScheme).text,
             borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
           }]}
           placeholder="Enter new password"
@@ -181,13 +181,13 @@ export default function ForgotPasswordScreen() {
       </View>
 
       <View style={styles.inputContainer}>
-        <Text style={[styles.label, { color: Colors[colorScheme ?? 'light'].text }]}>
+        <Text style={[styles.label, { color: getColors(colorScheme).text }]}>
           Confirm New Password
         </Text>
         <TextInput
           style={[styles.input, { 
-            backgroundColor: Colors[colorScheme ?? 'light'].card,
-            color: Colors[colorScheme ?? 'light'].text,
+            backgroundColor: getColors(colorScheme).card,
+            color: getColors(colorScheme).text,
             borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
           }]}
           placeholder="Confirm new password"
@@ -199,7 +199,7 @@ export default function ForgotPasswordScreen() {
       </View>
 
       <TouchableOpacity 
-        style={[styles.button, { backgroundColor: Colors[colorScheme ?? 'light'].tint }]}
+        style={[styles.button, { backgroundColor: getColors(colorScheme).tint }]}
         onPress={handleResetPassword}
       >
         <Text style={styles.buttonText}>Reset Password</Text>
@@ -219,7 +219,7 @@ export default function ForgotPasswordScreen() {
 
         <View style={styles.backContainer}>
           <Link href="/" asChild>
-            <Text style={[styles.backLink, { color: Colors[colorScheme ?? 'light'].tint }]}>
+            <Text style={[styles.backLink, { color: getColors(colorScheme).tint }]}>
               Back to Sign In
             </Text>
           </Link>

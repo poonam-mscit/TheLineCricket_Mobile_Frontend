@@ -1,6 +1,6 @@
 import { Text } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -267,7 +267,7 @@ export default function NotificationsScreen() {
         <View style={styles.notificationContent}>
           <View style={styles.notificationTitleRow}>
             <Text style={[styles.notificationTitle, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               {item.title}
             </Text>
@@ -277,14 +277,14 @@ export default function NotificationsScreen() {
           </View>
           
           <Text style={[styles.notificationMessage, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {item.message}
           </Text>
           
           <View style={styles.notificationFooter}>
             <Text style={[styles.notificationTime, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               {formatTimestamp(item.timestamp)}
             </Text>
@@ -304,7 +304,7 @@ export default function NotificationsScreen() {
         <View style={styles.notificationAction}>
           <TouchableOpacity 
             style={[styles.actionButton, { 
-              backgroundColor: Colors[colorScheme ?? 'light'].tint 
+              backgroundColor: getColors(colorScheme).tint 
             }]}
             onPress={() => handleNotificationPress(item)}
           >
@@ -320,7 +320,7 @@ export default function NotificationsScreen() {
         onPress={() => handleDeleteNotification(item.id)}
       >
         <Text style={[styles.deleteButtonText, { 
-          color: Colors[colorScheme ?? 'light'].text 
+          color: getColors(colorScheme).text 
         }]}>
           ✕
         </Text>
@@ -330,11 +330,11 @@ export default function NotificationsScreen() {
 
   return (
     <View style={[styles.container, { 
-      backgroundColor: Colors[colorScheme ?? 'light'].background
+      backgroundColor: getColors(colorScheme).background
     }]}>
       {/* Header */}
       <View style={[styles.header, { 
-        backgroundColor: Colors[colorScheme ?? 'light'].card,
+        backgroundColor: getColors(colorScheme).card,
         borderBottomColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
       }]}>
         <TouchableOpacity 
@@ -344,7 +344,7 @@ export default function NotificationsScreen() {
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { 
-          color: Colors[colorScheme ?? 'light'].text 
+          color: getColors(colorScheme).text 
         }]}>
           Notifications
         </Text>
@@ -357,12 +357,12 @@ export default function NotificationsScreen() {
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
           <Text style={[styles.statNumber, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {notifications.length}
           </Text>
           <Text style={[styles.statLabel, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             Total
           </Text>
@@ -373,7 +373,7 @@ export default function NotificationsScreen() {
             {unreadCount}
           </Text>
           <Text style={[styles.statLabel, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             Unread
           </Text>
@@ -381,12 +381,12 @@ export default function NotificationsScreen() {
         
         <View style={styles.statItem}>
           <Text style={[styles.statNumber, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {notifications.filter(n => n.type === 'match').length}
           </Text>
           <Text style={[styles.statLabel, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             Matches
           </Text>
@@ -402,7 +402,7 @@ export default function NotificationsScreen() {
               styles.filterButton,
               { 
                 backgroundColor: filter === option.key 
-                  ? Colors[colorScheme ?? 'light'].tint 
+                  ? getColors(colorScheme).tint 
                   : colorScheme === 'dark' ? '#333' : '#f5f5f5',
                 borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
               }
@@ -412,7 +412,7 @@ export default function NotificationsScreen() {
             <Text style={[
               styles.filterButtonText,
               { 
-                color: filter === option.key ? 'white' : Colors[colorScheme ?? 'light'].text 
+                color: filter === option.key ? 'white' : getColors(colorScheme).text 
               }
             ]}>
               {option.label}
@@ -424,7 +424,7 @@ export default function NotificationsScreen() {
       {/* Sort Options */}
       <View style={styles.sortContainer}>
         <Text style={[styles.sortLabel, { 
-          color: Colors[colorScheme ?? 'light'].text 
+          color: getColors(colorScheme).text 
         }]}>
           Sort by:
         </Text>
@@ -436,7 +436,7 @@ export default function NotificationsScreen() {
                 styles.sortButton,
                 { 
                   backgroundColor: sortBy === option.key 
-                    ? Colors[colorScheme ?? 'light'].tint 
+                    ? getColors(colorScheme).tint 
                     : colorScheme === 'dark' ? '#333' : '#f5f5f5',
                   borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
                 }
@@ -446,7 +446,7 @@ export default function NotificationsScreen() {
               <Text style={[
                 styles.sortButtonText,
                 { 
-                  color: sortBy === option.key ? 'white' : Colors[colorScheme ?? 'light'].text 
+                  color: sortBy === option.key ? 'white' : getColors(colorScheme).text 
                 }
               ]}>
                 {option.label}
@@ -460,14 +460,14 @@ export default function NotificationsScreen() {
       <View style={styles.actionButtonsContainer}>
         <TouchableOpacity 
           style={[styles.actionButton, { 
-            backgroundColor: Colors[colorScheme ?? 'light'].card,
+            backgroundColor: getColors(colorScheme).card,
             borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
           }]}
           onPress={handleMarkAllAsRead}
           disabled={unreadCount === 0}
         >
           <Text style={[styles.actionButtonText, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             Mark All Read
           </Text>
@@ -475,7 +475,7 @@ export default function NotificationsScreen() {
 
         <TouchableOpacity 
           style={[styles.actionButton, { 
-            backgroundColor: Colors[colorScheme ?? 'light'].error,
+            backgroundColor: getColors(colorScheme).error,
             borderColor: '#ff4757'
           }]}
           onPress={handleClearAll}
@@ -497,7 +497,7 @@ export default function NotificationsScreen() {
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Text style={[styles.emptyText, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               {filter === 'all' ? 'No notifications yet' : `No ${filter} notifications`}
             </Text>
@@ -643,7 +643,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors[colorScheme ?? 'light'].border,
+    backgroundColor: getColors(colorScheme).border,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -668,7 +668,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Colors[colorScheme ?? 'light'].error,
+    backgroundColor: getColors(colorScheme).error,
     marginLeft: 8,
   },
   notificationMessage: {

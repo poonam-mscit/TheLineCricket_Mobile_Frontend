@@ -1,6 +1,6 @@
 import { Text } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import React from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 
@@ -90,7 +90,7 @@ export function ProfileCard({
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
           <View style={[styles.avatar, { 
-            backgroundColor: Colors[colorScheme ?? 'light'].tint 
+            backgroundColor: getColors(colorScheme).tint 
           }]}>
             <Text style={styles.avatarText}>
               {profile.fullName.charAt(0).toUpperCase()}
@@ -100,18 +100,18 @@ export function ProfileCard({
 
         <View style={styles.profileInfo}>
           <Text style={[styles.fullName, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {profile.fullName}
           </Text>
           <Text style={[styles.username, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             @{profile.username}
           </Text>
           {profile.location && (
             <Text style={[styles.location, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               📍 {profile.location}
             </Text>
@@ -123,7 +123,7 @@ export function ProfileCard({
           {profile.isOwnProfile ? (
             <TouchableOpacity 
               style={[styles.editButton, { 
-                backgroundColor: Colors[colorScheme ?? 'light'].tint 
+                backgroundColor: getColors(colorScheme).tint 
               }]}
               onPress={() => onEdit(profile.id)}
             >
@@ -137,7 +137,7 @@ export function ProfileCard({
                   { 
                     backgroundColor: profile.isFollowing 
                       ? '#ccc' 
-                      : Colors[colorScheme ?? 'light'].tint 
+                      : getColors(colorScheme).tint 
                   }
                 ]}
                 onPress={handleFollowToggle}
@@ -149,7 +149,7 @@ export function ProfileCard({
               
               <TouchableOpacity 
                 style={[styles.messageButton, { 
-                  backgroundColor: Colors[colorScheme ?? 'light'].tint 
+                  backgroundColor: getColors(colorScheme).tint 
                 }]}
                 onPress={() => onMessage(profile.id)}
               >
@@ -164,7 +164,7 @@ export function ProfileCard({
       {profile.bio && (
         <View style={styles.bioContainer}>
           <Text style={[styles.bio, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {profile.bio}
           </Text>
@@ -178,12 +178,12 @@ export function ProfileCard({
           onPress={() => onViewPosts(profile.id)}
         >
           <Text style={[styles.statNumber, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {profile.stats.posts}
           </Text>
           <Text style={[styles.statLabel, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             Posts
           </Text>
@@ -194,12 +194,12 @@ export function ProfileCard({
           onPress={() => onViewMatches(profile.id)}
         >
           <Text style={[styles.statNumber, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {profile.stats.matches}
           </Text>
           <Text style={[styles.statLabel, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             Matches
           </Text>
@@ -207,12 +207,12 @@ export function ProfileCard({
 
         <View style={styles.statItem}>
           <Text style={[styles.statNumber, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {profile.stats.followers}
           </Text>
           <Text style={[styles.statLabel, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             Followers
           </Text>
@@ -220,12 +220,12 @@ export function ProfileCard({
 
         <View style={styles.statItem}>
           <Text style={[styles.statNumber, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {profile.stats.following}
           </Text>
           <Text style={[styles.statLabel, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             Following
           </Text>
@@ -235,7 +235,7 @@ export function ProfileCard({
       {/* Win/Loss Record */}
       <View style={styles.recordContainer}>
         <Text style={[styles.recordTitle, { 
-          color: Colors[colorScheme ?? 'light'].text 
+          color: getColors(colorScheme).text 
         }]}>
           Match Record
         </Text>
@@ -245,7 +245,7 @@ export function ProfileCard({
               {profile.stats.wins}
             </Text>
             <Text style={[styles.recordLabel, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Wins
             </Text>
@@ -255,7 +255,7 @@ export function ProfileCard({
               {profile.stats.losses}
             </Text>
             <Text style={[styles.recordLabel, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Losses
             </Text>
@@ -266,14 +266,14 @@ export function ProfileCard({
       {/* Skills */}
       <View style={styles.skillsContainer}>
         <Text style={[styles.skillsTitle, { 
-          color: Colors[colorScheme ?? 'light'].text 
+          color: getColors(colorScheme).text 
         }]}>
           Cricket Skills
         </Text>
         <View style={styles.skillsList}>
           <View style={styles.skillItem}>
             <Text style={[styles.skillLabel, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Batting
             </Text>
@@ -291,7 +291,7 @@ export function ProfileCard({
               />
             </View>
             <Text style={[styles.skillValue, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               {profile.skills.batting}%
             </Text>
@@ -299,7 +299,7 @@ export function ProfileCard({
 
           <View style={styles.skillItem}>
             <Text style={[styles.skillLabel, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Bowling
             </Text>
@@ -317,7 +317,7 @@ export function ProfileCard({
               />
             </View>
             <Text style={[styles.skillValue, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               {profile.skills.bowling}%
             </Text>
@@ -325,7 +325,7 @@ export function ProfileCard({
 
           <View style={styles.skillItem}>
             <Text style={[styles.skillLabel, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Fielding
             </Text>
@@ -343,7 +343,7 @@ export function ProfileCard({
               />
             </View>
             <Text style={[styles.skillValue, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               {profile.skills.fielding}%
             </Text>
@@ -355,7 +355,7 @@ export function ProfileCard({
       {profile.achievements.length > 0 && (
         <View style={styles.achievementsContainer}>
           <Text style={[styles.achievementsTitle, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             🏆 Achievements
           </Text>
@@ -365,7 +365,7 @@ export function ProfileCard({
                 backgroundColor: colorScheme === 'dark' ? '#333' : '#f8f9fa' 
               }]}>
                 <Text style={[styles.achievementText, { 
-                  color: Colors[colorScheme ?? 'light'].text 
+                  color: getColors(colorScheme).text 
                 }]}>
                   {achievement}
                 </Text>
@@ -378,7 +378,7 @@ export function ProfileCard({
       {/* Joined Date */}
       <View style={styles.joinedContainer}>
         <Text style={[styles.joinedText, { 
-          color: Colors[colorScheme ?? 'light'].text 
+          color: getColors(colorScheme).text 
         }]}>
           Joined {formatDate(profile.joinedDate)}
         </Text>

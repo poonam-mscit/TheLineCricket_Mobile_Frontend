@@ -1,4 +1,8 @@
 // TheLine Cricket Color Scheme - Extracted from Web Frontend
+
+// Type definitions for better TypeScript support
+export type ColorScheme = 'light' | 'dark';
+
 // Cricket Brand Colors
 const cricketGreen = '#2e4b5f';
 const cricketGreenHover = '#1a3240';
@@ -46,7 +50,7 @@ const infoLight = '#d1ecf1';
 const facebook = '#1877f2';
 const google = '#4285f4';
 
-export default {
+const colors = {
   light: {
     // Primary Colors
     primary: cricketGreen,
@@ -128,3 +132,13 @@ export default {
     tabIconSelected: stadiumWhite,
   },
 };
+
+// Type-safe color accessor
+export const getColors = (colorScheme: any) => {
+  if (colorScheme === 'dark') {
+    return colors.dark;
+  }
+  return colors.light;
+};
+
+export default colors;

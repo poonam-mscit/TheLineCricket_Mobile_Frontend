@@ -1,6 +1,6 @@
 import { Text } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
@@ -49,12 +49,12 @@ export function UserStatsCard({ stats, onStatPress }: UserStatsCardProps) {
           onPress={() => handleStatPress('posts')}
         >
           <Text style={[styles.statNumber, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {stats.posts}
           </Text>
           <Text style={[styles.statLabel, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             Posts
           </Text>
@@ -65,12 +65,12 @@ export function UserStatsCard({ stats, onStatPress }: UserStatsCardProps) {
           onPress={() => handleStatPress('matches')}
         >
           <Text style={[styles.statNumber, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {stats.matches}
           </Text>
           <Text style={[styles.statLabel, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             Matches
           </Text>
@@ -81,12 +81,12 @@ export function UserStatsCard({ stats, onStatPress }: UserStatsCardProps) {
           onPress={() => handleStatPress('followers')}
         >
           <Text style={[styles.statNumber, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {stats.followers}
           </Text>
           <Text style={[styles.statLabel, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             Followers
           </Text>
@@ -97,12 +97,12 @@ export function UserStatsCard({ stats, onStatPress }: UserStatsCardProps) {
           onPress={() => handleStatPress('following')}
         >
           <Text style={[styles.statNumber, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {stats.following}
           </Text>
           <Text style={[styles.statLabel, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             Following
           </Text>
@@ -112,7 +112,7 @@ export function UserStatsCard({ stats, onStatPress }: UserStatsCardProps) {
       {/* Match Record */}
       <View style={styles.recordSection}>
         <Text style={[styles.sectionTitle, { 
-          color: Colors[colorScheme ?? 'light'].text 
+          color: getColors(colorScheme).text 
         }]}>
           Match Record
         </Text>
@@ -122,7 +122,7 @@ export function UserStatsCard({ stats, onStatPress }: UserStatsCardProps) {
               {stats.wins}
             </Text>
             <Text style={[styles.recordLabel, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Wins
             </Text>
@@ -133,7 +133,7 @@ export function UserStatsCard({ stats, onStatPress }: UserStatsCardProps) {
               {stats.losses}
             </Text>
             <Text style={[styles.recordLabel, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Losses
             </Text>
@@ -146,7 +146,7 @@ export function UserStatsCard({ stats, onStatPress }: UserStatsCardProps) {
               {stats.winRate}%
             </Text>
             <Text style={[styles.recordLabel, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Win Rate
             </Text>
@@ -157,19 +157,19 @@ export function UserStatsCard({ stats, onStatPress }: UserStatsCardProps) {
       {/* Performance Stats */}
       <View style={styles.performanceSection}>
         <Text style={[styles.sectionTitle, { 
-          color: Colors[colorScheme ?? 'light'].text 
+          color: getColors(colorScheme).text 
         }]}>
           Performance
         </Text>
         <View style={styles.performanceStats}>
           <View style={styles.performanceItem}>
             <Text style={[styles.performanceLabel, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Total Runs
             </Text>
             <Text style={[styles.performanceValue, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               {stats.totalRuns}
             </Text>
@@ -177,12 +177,12 @@ export function UserStatsCard({ stats, onStatPress }: UserStatsCardProps) {
           
           <View style={styles.performanceItem}>
             <Text style={[styles.performanceLabel, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Total Wickets
             </Text>
             <Text style={[styles.performanceValue, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               {stats.totalWickets}
             </Text>
@@ -192,12 +192,12 @@ export function UserStatsCard({ stats, onStatPress }: UserStatsCardProps) {
         <View style={styles.performanceStats}>
           <View style={styles.performanceItem}>
             <Text style={[styles.performanceLabel, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Best Score
             </Text>
             <Text style={[styles.performanceValue, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               {stats.bestScore}
             </Text>
@@ -205,12 +205,12 @@ export function UserStatsCard({ stats, onStatPress }: UserStatsCardProps) {
           
           <View style={styles.performanceItem}>
             <Text style={[styles.performanceLabel, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Best Bowling
             </Text>
             <Text style={[styles.performanceValue, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               {stats.bestBowling}
             </Text>
@@ -221,13 +221,13 @@ export function UserStatsCard({ stats, onStatPress }: UserStatsCardProps) {
       {/* Achievements */}
       <View style={styles.achievementsSection}>
         <Text style={[styles.sectionTitle, { 
-          color: Colors[colorScheme ?? 'light'].text 
+          color: getColors(colorScheme).text 
         }]}>
           🏆 Achievements
         </Text>
         <View style={styles.achievementsContainer}>
           <Text style={[styles.achievementsCount, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {stats.achievements} achievements unlocked
           </Text>

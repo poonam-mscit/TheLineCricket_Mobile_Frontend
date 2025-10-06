@@ -1,6 +1,6 @@
 import { Text } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import React, { useState } from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { CommentButton } from './CommentButton';
@@ -60,7 +60,7 @@ export function PostCard({ post, onLike, onComment, onShare }: PostCardProps) {
       <View style={styles.header}>
         <View style={styles.authorInfo}>
           <View style={[styles.avatar, { 
-            backgroundColor: Colors[colorScheme ?? 'light'].tint 
+            backgroundColor: getColors(colorScheme).tint 
           }]}>
             <Text style={styles.avatarText}>
               {post.author.fullName.charAt(0).toUpperCase()}
@@ -68,19 +68,19 @@ export function PostCard({ post, onLike, onComment, onShare }: PostCardProps) {
           </View>
           <View style={styles.authorDetails}>
             <Text style={[styles.authorName, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               {post.author.fullName}
             </Text>
             <Text style={[styles.username, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               @{post.author.username}
             </Text>
           </View>
         </View>
         <Text style={[styles.timeAgo, { 
-          color: Colors[colorScheme ?? 'light'].text 
+          color: getColors(colorScheme).text 
         }]}>
           {formatTimeAgo(post.createdAt)}
         </Text>
@@ -89,14 +89,14 @@ export function PostCard({ post, onLike, onComment, onShare }: PostCardProps) {
       {/* Content */}
       <View style={styles.content}>
         <Text style={[styles.postText, { 
-          color: Colors[colorScheme ?? 'light'].text 
+          color: getColors(colorScheme).text 
         }]}>
           {post.content}
         </Text>
         
         {post.location && (
           <Text style={[styles.location, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             📍 {post.location}
           </Text>
@@ -126,7 +126,7 @@ export function PostCard({ post, onLike, onComment, onShare }: PostCardProps) {
           onPress={() => onShare(post.id)}
         >
           <Text style={[styles.actionText, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             Share
           </Text>

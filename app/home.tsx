@@ -1,6 +1,6 @@
 import { Text } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
@@ -128,7 +128,7 @@ export default function HomeScreen() {
 
   const renderHomeSection = () => (
     <ScrollView style={styles.sectionContent}>
-      <Text style={[styles.sectionTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
+      <Text style={[styles.sectionTitle, { color: getColors(colorScheme).text }]}>
         Welcome back, {user?.fullName || 'User'}! 🏏
       </Text>
       
@@ -149,7 +149,7 @@ export default function HomeScreen() {
 
   const renderSearchSection = () => (
     <ScrollView style={styles.sectionContent}>
-      <Text style={[styles.sectionTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
+      <Text style={[styles.sectionTitle, { color: getColors(colorScheme).text }]}>
         Search Cricket
       </Text>
       
@@ -176,7 +176,7 @@ export default function HomeScreen() {
 
   const renderCreateSection = () => (
     <ScrollView style={styles.sectionContent}>
-      <Text style={[styles.sectionTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
+      <Text style={[styles.sectionTitle, { color: getColors(colorScheme).text }]}>
         Create Content
       </Text>
       
@@ -190,30 +190,30 @@ export default function HomeScreen() {
 
   const renderJobsSection = () => (
     <ScrollView style={styles.sectionContent}>
-      <Text style={[styles.sectionTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
+      <Text style={[styles.sectionTitle, { color: getColors(colorScheme).text }]}>
         Cricket Jobs
       </Text>
       
       <Text style={[styles.jobCard, { 
-        backgroundColor: Colors[colorScheme ?? 'light'].card,
-        borderColor: Colors[colorScheme ?? 'light'].border,
-        color: Colors[colorScheme ?? 'light'].text
+        backgroundColor: getColors(colorScheme).card,
+        borderColor: getColors(colorScheme).border,
+        color: getColors(colorScheme).text
       }]}>
         🏏 Cricket Coach - Mumbai
       </Text>
       
       <Text style={[styles.jobCard, { 
-        backgroundColor: Colors[colorScheme ?? 'light'].card,
-        borderColor: Colors[colorScheme ?? 'light'].border,
-        color: Colors[colorScheme ?? 'light'].text
+        backgroundColor: getColors(colorScheme).card,
+        borderColor: getColors(colorScheme).border,
+        color: getColors(colorScheme).text
       }]}>
         📊 Cricket Analyst - Delhi
       </Text>
       
       <Text style={[styles.jobCard, { 
-        backgroundColor: Colors[colorScheme ?? 'light'].card,
-        borderColor: Colors[colorScheme ?? 'light'].border,
-        color: Colors[colorScheme ?? 'light'].text
+        backgroundColor: getColors(colorScheme).card,
+        borderColor: getColors(colorScheme).border,
+        color: getColors(colorScheme).text
       }]}>
         🎯 Bowling Coach - Bangalore
       </Text>
@@ -222,7 +222,7 @@ export default function HomeScreen() {
 
   const renderProfileSection = () => (
     <ScrollView style={styles.sectionContent}>
-      <Text style={[styles.sectionTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
+      <Text style={[styles.sectionTitle, { color: getColors(colorScheme).text }]}>
         Your Profile
       </Text>
       
@@ -280,7 +280,7 @@ export default function HomeScreen() {
       />
       
       <TouchableOpacity 
-        style={[styles.logoutButton, { backgroundColor: Colors[colorScheme ?? 'light'].error }]}
+        style={[styles.logoutButton, { backgroundColor: getColors(colorScheme).error }]}
         onPress={handleLogout}
       >
         <Text style={styles.logoutButtonText}>Logout</Text>
@@ -307,7 +307,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { 
-      backgroundColor: Colors[colorScheme ?? 'light'].background
+      backgroundColor: getColors(colorScheme).background
     }]}>
       {renderHeader()}
       {renderActiveSection()}

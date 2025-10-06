@@ -1,6 +1,6 @@
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
@@ -33,25 +33,25 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.formContainer}>
-        <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]}>
+        <Text style={[styles.title, { color: getColors(colorScheme).text }]}>
           Welcome Back
         </Text>
-        <Text style={[styles.subtitle, { color: Colors[colorScheme ?? 'light'].text }]}>
+        <Text style={[styles.subtitle, { color: getColors(colorScheme).text }]}>
           Sign in to your account
         </Text>
 
         <View style={styles.inputContainer}>
-          <Text style={[styles.label, { color: Colors[colorScheme ?? 'light'].text }]}>
+          <Text style={[styles.label, { color: getColors(colorScheme).text }]}>
             Email
           </Text>
           <TextInput
             style={[styles.input, { 
-              backgroundColor: Colors[colorScheme ?? 'light'].card,
-              color: Colors[colorScheme ?? 'light'].text,
-              borderColor: Colors[colorScheme ?? 'light'].border
+              backgroundColor: getColors(colorScheme).card,
+              color: getColors(colorScheme).text,
+              borderColor: getColors(colorScheme).border
             }]}
             placeholder="Enter your email"
-            placeholderTextColor={Colors[colorScheme ?? 'light'].text}
+            placeholderTextColor={getColors(colorScheme).text}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -61,17 +61,17 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={[styles.label, { color: Colors[colorScheme ?? 'light'].text }]}>
+          <Text style={[styles.label, { color: getColors(colorScheme).text }]}>
             Password
           </Text>
           <TextInput
             style={[styles.input, { 
-              backgroundColor: Colors[colorScheme ?? 'light'].card,
-              color: Colors[colorScheme ?? 'light'].text,
-              borderColor: Colors[colorScheme ?? 'light'].border
+              backgroundColor: getColors(colorScheme).card,
+              color: getColors(colorScheme).text,
+              borderColor: getColors(colorScheme).border
             }]}
             placeholder="Enter your password"
-            placeholderTextColor={Colors[colorScheme ?? 'light'].text}
+            placeholderTextColor={getColors(colorScheme).text}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -80,14 +80,14 @@ export default function LoginScreen() {
 
         <TouchableOpacity style={styles.forgotPassword}>
           <Link href="/forgot-password" asChild>
-            <Text style={[styles.forgotPasswordText, { color: Colors[colorScheme ?? 'light'].tint }]}>
+            <Text style={[styles.forgotPasswordText, { color: getColors(colorScheme).tint }]}>
               Forgot Password?
             </Text>
           </Link>
         </TouchableOpacity>
 
         <TouchableOpacity 
-          style={[styles.loginButton, { backgroundColor: Colors[colorScheme ?? 'light'].tint }]}
+          style={[styles.loginButton, { backgroundColor: getColors(colorScheme).tint }]}
           onPress={handleLogin}
         >
           <Text style={styles.loginButtonText}>
@@ -96,11 +96,11 @@ export default function LoginScreen() {
         </TouchableOpacity>
 
         <View style={styles.signupContainer}>
-          <Text style={[styles.signupText, { color: Colors[colorScheme ?? 'light'].text }]}>
+          <Text style={[styles.signupText, { color: getColors(colorScheme).text }]}>
             Don't have an account?{' '}
           </Text>
           <Link href="/signup" asChild>
-            <Text style={[styles.signupLink, { color: Colors[colorScheme ?? 'light'].tint }]}>
+            <Text style={[styles.signupLink, { color: getColors(colorScheme).tint }]}>
               Sign Up
             </Text>
           </Link>

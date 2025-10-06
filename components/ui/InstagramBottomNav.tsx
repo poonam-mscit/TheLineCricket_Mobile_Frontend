@@ -1,6 +1,6 @@
 import { Text } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import React, { useState } from 'react';
 import { Modal, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -98,14 +98,14 @@ export function InstagramBottomNav({
       onRequestClose={() => setShowCreateModal(false)}
     >
       <View style={[styles.modalContainer, { 
-        backgroundColor: Colors[colorScheme ?? 'light'].background
+        backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#ffffff'
       }]}>
         <View style={[styles.modalHeader, { 
-          backgroundColor: Colors[colorScheme ?? 'light'].card,
-          borderBottomColor: Colors[colorScheme ?? 'light'].border
+          backgroundColor: colorScheme === 'dark' ? '#2c2c2c' : '#f8f9fa',
+          borderBottomColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
         }]}>
           <Text style={[styles.modalTitle, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             Create Content
           </Text>
@@ -120,18 +120,18 @@ export function InstagramBottomNav({
         <View style={styles.createTypeSelector}>
           <TouchableOpacity 
             style={[styles.createTypeButton, { 
-              backgroundColor: createType === 'post' ? Colors[colorScheme ?? 'light'].tint : 'transparent',
-              borderColor: Colors[colorScheme ?? 'light'].border
+              backgroundColor: createType === 'post' ? getColors(colorScheme).tint : 'transparent',
+              borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
             }]}
             onPress={() => setCreateType('post')}
           >
             <Text style={[styles.createTypeIcon, { 
-              color: createType === 'post' ? 'white' : Colors[colorScheme ?? 'light'].text 
+              color: createType === 'post' ? 'white' : getColors(colorScheme).text 
             }]}>
               📝
             </Text>
             <Text style={[styles.createTypeLabel, { 
-              color: createType === 'post' ? 'white' : Colors[colorScheme ?? 'light'].text 
+              color: createType === 'post' ? 'white' : getColors(colorScheme).text 
             }]}>
               Post
             </Text>
@@ -139,18 +139,18 @@ export function InstagramBottomNav({
 
           <TouchableOpacity 
             style={[styles.createTypeButton, { 
-              backgroundColor: createType === 'match' ? Colors[colorScheme ?? 'light'].tint : 'transparent',
-              borderColor: Colors[colorScheme ?? 'light'].border
+              backgroundColor: createType === 'match' ? getColors(colorScheme).tint : 'transparent',
+              borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
             }]}
             onPress={() => setCreateType('match')}
           >
             <Text style={[styles.createTypeIcon, { 
-              color: createType === 'match' ? 'white' : Colors[colorScheme ?? 'light'].text 
+              color: createType === 'match' ? 'white' : getColors(colorScheme).text 
             }]}>
               🏏
             </Text>
             <Text style={[styles.createTypeLabel, { 
-              color: createType === 'match' ? 'white' : Colors[colorScheme ?? 'light'].text 
+              color: createType === 'match' ? 'white' : getColors(colorScheme).text 
             }]}>
               Match
             </Text>
@@ -158,18 +158,18 @@ export function InstagramBottomNav({
 
           <TouchableOpacity 
             style={[styles.createTypeButton, { 
-              backgroundColor: createType === 'team' ? Colors[colorScheme ?? 'light'].tint : 'transparent',
-              borderColor: Colors[colorScheme ?? 'light'].border
+              backgroundColor: createType === 'team' ? getColors(colorScheme).tint : 'transparent',
+              borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
             }]}
             onPress={() => setCreateType('team')}
           >
             <Text style={[styles.createTypeIcon, { 
-              color: createType === 'team' ? 'white' : Colors[colorScheme ?? 'light'].text 
+              color: createType === 'team' ? 'white' : getColors(colorScheme).text 
             }]}>
               👥
             </Text>
             <Text style={[styles.createTypeLabel, { 
-              color: createType === 'team' ? 'white' : Colors[colorScheme ?? 'light'].text 
+              color: createType === 'team' ? 'white' : getColors(colorScheme).text 
             }]}>
               Team
             </Text>
@@ -180,18 +180,18 @@ export function InstagramBottomNav({
           {createType === 'post' && (
             <View style={styles.createForm}>
               <Text style={[styles.formLabel, { 
-                color: Colors[colorScheme ?? 'light'].text 
+                color: getColors(colorScheme).text 
               }]}>
                 What's on your mind?
               </Text>
               <TextInput
                 style={[styles.textInput, { 
-                  color: Colors[colorScheme ?? 'light'].text,
-                  backgroundColor: Colors[colorScheme ?? 'light'].card,
-                  borderColor: Colors[colorScheme ?? 'light'].border
+                  color: getColors(colorScheme).text,
+                  backgroundColor: colorScheme === 'dark' ? '#333' : '#f8f9fa',
+                  borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
                 }]}
                 placeholder="Share your cricket thoughts..."
-                placeholderTextColor={Colors[colorScheme ?? 'light'].text}
+                placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
                 value={postContent}
                 onChangeText={setPostContent}
                 multiline
@@ -203,43 +203,43 @@ export function InstagramBottomNav({
           {createType === 'match' && (
             <View style={styles.createForm}>
               <Text style={[styles.formLabel, { 
-                color: Colors[colorScheme ?? 'light'].text 
+                color: getColors(colorScheme).text 
               }]}>
                 Create a Match
               </Text>
               
               <TextInput
                 style={[styles.textInput, { 
-                  color: Colors[colorScheme ?? 'light'].text,
-                  backgroundColor: Colors[colorScheme ?? 'light'].card,
-                  borderColor: Colors[colorScheme ?? 'light'].border
+                  color: getColors(colorScheme).text,
+                  backgroundColor: colorScheme === 'dark' ? '#333' : '#f8f9fa',
+                  borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
                 }]}
                 placeholder="Team A"
-                placeholderTextColor={Colors[colorScheme ?? 'light'].text}
+                placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
                 value={matchData.teamA}
                 onChangeText={(text) => setMatchData(prev => ({ ...prev, teamA: text }))}
               />
               
               <TextInput
                 style={[styles.textInput, { 
-                  color: Colors[colorScheme ?? 'light'].text,
-                  backgroundColor: Colors[colorScheme ?? 'light'].card,
-                  borderColor: Colors[colorScheme ?? 'light'].border
+                  color: getColors(colorScheme).text,
+                  backgroundColor: colorScheme === 'dark' ? '#333' : '#f8f9fa',
+                  borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
                 }]}
                 placeholder="Team B"
-                placeholderTextColor={Colors[colorScheme ?? 'light'].text}
+                placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
                 value={matchData.teamB}
                 onChangeText={(text) => setMatchData(prev => ({ ...prev, teamB: text }))}
               />
               
               <TextInput
                 style={[styles.textInput, { 
-                  color: Colors[colorScheme ?? 'light'].text,
-                  backgroundColor: Colors[colorScheme ?? 'light'].card,
-                  borderColor: Colors[colorScheme ?? 'light'].border
+                  color: getColors(colorScheme).text,
+                  backgroundColor: colorScheme === 'dark' ? '#333' : '#f8f9fa',
+                  borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
                 }]}
                 placeholder="Location"
-                placeholderTextColor={Colors[colorScheme ?? 'light'].text}
+                placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
                 value={matchData.location}
                 onChangeText={(text) => setMatchData(prev => ({ ...prev, location: text }))}
               />
@@ -249,31 +249,31 @@ export function InstagramBottomNav({
           {createType === 'team' && (
             <View style={styles.createForm}>
               <Text style={[styles.formLabel, { 
-                color: Colors[colorScheme ?? 'light'].text 
+                color: getColors(colorScheme).text 
               }]}>
                 Create a Team
               </Text>
               
               <TextInput
                 style={[styles.textInput, { 
-                  color: Colors[colorScheme ?? 'light'].text,
-                  backgroundColor: Colors[colorScheme ?? 'light'].card,
-                  borderColor: Colors[colorScheme ?? 'light'].border
+                  color: getColors(colorScheme).text,
+                  backgroundColor: colorScheme === 'dark' ? '#333' : '#f8f9fa',
+                  borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
                 }]}
                 placeholder="Team Name"
-                placeholderTextColor={Colors[colorScheme ?? 'light'].text}
+                placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
                 value={teamData.name}
                 onChangeText={(text) => setTeamData(prev => ({ ...prev, name: text }))}
               />
               
               <TextInput
                 style={[styles.textInput, { 
-                  color: Colors[colorScheme ?? 'light'].text,
-                  backgroundColor: Colors[colorScheme ?? 'light'].card,
-                  borderColor: Colors[colorScheme ?? 'light'].border
+                  color: getColors(colorScheme).text,
+                  backgroundColor: colorScheme === 'dark' ? '#333' : '#f8f9fa',
+                  borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
                 }]}
                 placeholder="Description"
-                placeholderTextColor={Colors[colorScheme ?? 'light'].text}
+                placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
                 value={teamData.description}
                 onChangeText={(text) => setTeamData(prev => ({ ...prev, description: text }))}
                 multiline
@@ -282,12 +282,12 @@ export function InstagramBottomNav({
               
               <TextInput
                 style={[styles.textInput, { 
-                  color: Colors[colorScheme ?? 'light'].text,
-                  backgroundColor: Colors[colorScheme ?? 'light'].card,
-                  borderColor: Colors[colorScheme ?? 'light'].border
+                  color: getColors(colorScheme).text,
+                  backgroundColor: colorScheme === 'dark' ? '#333' : '#f8f9fa',
+                  borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
                 }]}
                 placeholder="Location"
-                placeholderTextColor={Colors[colorScheme ?? 'light'].text}
+                placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
                 value={teamData.location}
                 onChangeText={(text) => setTeamData(prev => ({ ...prev, location: text }))}
               />
@@ -299,12 +299,12 @@ export function InstagramBottomNav({
           <TouchableOpacity 
             style={[styles.cancelButton, { 
               backgroundColor: colorScheme === 'dark' ? '#333' : '#f5f5f5',
-              borderColor: Colors[colorScheme ?? 'light'].border
+              borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
             }]}
             onPress={() => setShowCreateModal(false)}
           >
             <Text style={[styles.cancelButtonText, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Cancel
             </Text>
@@ -312,7 +312,7 @@ export function InstagramBottomNav({
 
           <TouchableOpacity 
             style={[styles.createButton, { 
-              backgroundColor: Colors[colorScheme ?? 'light'].tint 
+              backgroundColor: getColors(colorScheme).tint 
             }]}
             onPress={handleCreateSubmit}
           >
@@ -328,7 +328,7 @@ export function InstagramBottomNav({
   return (
     <>
       <View style={[styles.bottomNav, { 
-        backgroundColor: Colors[colorScheme ?? 'light'].background,
+        backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#ffffff',
         borderTopColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
       }]}>
         {navItems.map((item) => (
@@ -352,8 +352,8 @@ export function InstagramBottomNav({
               styles.navIcon,
               { 
                 color: activeSection === item.key 
-                  ? Colors[colorScheme ?? 'light'].tint 
-                  : Colors[colorScheme ?? 'light'].text,
+                  ? getColors(colorScheme).tint 
+                  : getColors(colorScheme).text,
                 fontSize: item.isCenter ? 24 : 20
               }
             ]}>
@@ -363,8 +363,8 @@ export function InstagramBottomNav({
               styles.navLabel,
               { 
                 color: activeSection === item.key 
-                  ? Colors[colorScheme ?? 'light'].tint 
-                  : Colors[colorScheme ?? 'light'].text 
+                  ? getColors(colorScheme).tint 
+                  : getColors(colorScheme).text 
               }
             ]}>
               {item.label}

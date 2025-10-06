@@ -1,6 +1,6 @@
 import { Text } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -91,11 +91,11 @@ export function CreateMatchBox({ onCreateMatch }: CreateMatchBoxProps) {
 
   return (
     <View style={[styles.container, { 
-      backgroundColor: Colors[colorScheme ?? 'light'].background,
-      borderColor: Colors[colorScheme ?? 'light'].border
+      backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#ffffff',
+      borderColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
     }]}>
       <Text style={[styles.title, { 
-        color: Colors[colorScheme ?? 'light'].text 
+        color: getColors(colorScheme).text 
       }]}>
         Create New Match
       </Text>
@@ -104,18 +104,18 @@ export function CreateMatchBox({ onCreateMatch }: CreateMatchBoxProps) {
         {/* Title */}
         <View style={styles.inputContainer}>
           <Text style={[styles.label, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             Match Title *
           </Text>
           <TextInput
             style={[styles.input, { 
-              color: Colors[colorScheme ?? 'light'].text,
-              backgroundColor: Colors[colorScheme ?? 'light'].card,
-              borderColor: Colors[colorScheme ?? 'light'].border
+              color: getColors(colorScheme).text,
+              backgroundColor: colorScheme === 'dark' ? '#333' : '#f5f5f5',
+              borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
             }]}
             placeholder="e.g., Weekend Cricket Match"
-            placeholderTextColor={Colors[colorScheme ?? 'light'].text}
+            placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
             value={title}
             onChangeText={setTitle}
           />
@@ -124,7 +124,7 @@ export function CreateMatchBox({ onCreateMatch }: CreateMatchBoxProps) {
         {/* Type */}
         <View style={styles.inputContainer}>
           <Text style={[styles.label, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             Match Type
           </Text>
@@ -136,9 +136,9 @@ export function CreateMatchBox({ onCreateMatch }: CreateMatchBoxProps) {
                   styles.typeOption,
                   { 
                     backgroundColor: type === option 
-                      ? Colors[colorScheme ?? 'light'].tint 
-                      : Colors[colorScheme ?? 'light'].card,
-                    borderColor: Colors[colorScheme ?? 'light'].border
+                      ? getColors(colorScheme).tint 
+                      : colorScheme === 'dark' ? '#333' : '#f5f5f5',
+                    borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
                   }
                 ]}
                 onPress={() => setType(option as any)}
@@ -146,7 +146,7 @@ export function CreateMatchBox({ onCreateMatch }: CreateMatchBoxProps) {
                 <Text style={[
                   styles.typeOptionText,
                   { 
-                    color: type === option ? 'white' : Colors[colorScheme ?? 'light'].text 
+                    color: type === option ? 'white' : getColors(colorScheme).text 
                   }
                 ]}>
                   {option}
@@ -160,18 +160,18 @@ export function CreateMatchBox({ onCreateMatch }: CreateMatchBoxProps) {
         <View style={styles.rowContainer}>
           <View style={[styles.inputContainer, { flex: 1, marginRight: 8 }]}>
             <Text style={[styles.label, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Date *
             </Text>
             <TextInput
               style={[styles.input, { 
-                color: Colors[colorScheme ?? 'light'].text,
+                color: getColors(colorScheme).text,
                 backgroundColor: colorScheme === 'dark' ? '#333' : '#f5f5f5',
                 borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
               }]}
               placeholder="YYYY-MM-DD"
-              placeholderTextColor={Colors[colorScheme ?? 'light'].text}
+              placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
               value={date}
               onChangeText={setDate}
             />
@@ -179,18 +179,18 @@ export function CreateMatchBox({ onCreateMatch }: CreateMatchBoxProps) {
           
           <View style={[styles.inputContainer, { flex: 1, marginLeft: 8 }]}>
             <Text style={[styles.label, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Time *
             </Text>
             <TextInput
               style={[styles.input, { 
-                color: Colors[colorScheme ?? 'light'].text,
+                color: getColors(colorScheme).text,
                 backgroundColor: colorScheme === 'dark' ? '#333' : '#f5f5f5',
                 borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
               }]}
               placeholder="HH:MM"
-              placeholderTextColor={Colors[colorScheme ?? 'light'].text}
+              placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
               value={time}
               onChangeText={setTime}
             />
@@ -200,18 +200,18 @@ export function CreateMatchBox({ onCreateMatch }: CreateMatchBoxProps) {
         {/* Venue */}
         <View style={styles.inputContainer}>
           <Text style={[styles.label, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             Venue *
           </Text>
           <TextInput
             style={[styles.input, { 
-              color: Colors[colorScheme ?? 'light'].text,
-              backgroundColor: Colors[colorScheme ?? 'light'].card,
-              borderColor: Colors[colorScheme ?? 'light'].border
+              color: getColors(colorScheme).text,
+              backgroundColor: colorScheme === 'dark' ? '#333' : '#f5f5f5',
+              borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
             }]}
             placeholder="e.g., Mumbai Cricket Ground"
-            placeholderTextColor={Colors[colorScheme ?? 'light'].text}
+            placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
             value={venue}
             onChangeText={setVenue}
           />
@@ -221,18 +221,18 @@ export function CreateMatchBox({ onCreateMatch }: CreateMatchBoxProps) {
         <View style={styles.rowContainer}>
           <View style={[styles.inputContainer, { flex: 1, marginRight: 8 }]}>
             <Text style={[styles.label, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Players Needed *
             </Text>
             <TextInput
               style={[styles.input, { 
-                color: Colors[colorScheme ?? 'light'].text,
+                color: getColors(colorScheme).text,
                 backgroundColor: colorScheme === 'dark' ? '#333' : '#f5f5f5',
                 borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
               }]}
               placeholder="22"
-              placeholderTextColor={Colors[colorScheme ?? 'light'].text}
+              placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
               value={playersNeeded}
               onChangeText={setPlayersNeeded}
               keyboardType="numeric"
@@ -241,7 +241,7 @@ export function CreateMatchBox({ onCreateMatch }: CreateMatchBoxProps) {
           
           <View style={[styles.inputContainer, { flex: 1, marginLeft: 8 }]}>
             <Text style={[styles.label, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Skill Level
             </Text>
@@ -253,7 +253,7 @@ export function CreateMatchBox({ onCreateMatch }: CreateMatchBoxProps) {
                     styles.skillOption,
                     { 
                       backgroundColor: skillLevel === option 
-                        ? Colors[colorScheme ?? 'light'].tint 
+                        ? getColors(colorScheme).tint 
                         : colorScheme === 'dark' ? '#333' : '#f5f5f5',
                       borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
                     }
@@ -263,7 +263,7 @@ export function CreateMatchBox({ onCreateMatch }: CreateMatchBoxProps) {
                   <Text style={[
                     styles.skillOptionText,
                     { 
-                      color: skillLevel === option ? 'white' : Colors[colorScheme ?? 'light'].text 
+                      color: skillLevel === option ? 'white' : getColors(colorScheme).text 
                     }
                   ]}>
                     {option}
@@ -277,18 +277,18 @@ export function CreateMatchBox({ onCreateMatch }: CreateMatchBoxProps) {
         {/* Entry Fee */}
         <View style={styles.inputContainer}>
           <Text style={[styles.label, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             Entry Fee (₹)
           </Text>
           <TextInput
             style={[styles.input, { 
-              color: Colors[colorScheme ?? 'light'].text,
-              backgroundColor: Colors[colorScheme ?? 'light'].card,
-              borderColor: Colors[colorScheme ?? 'light'].border
+              color: getColors(colorScheme).text,
+              backgroundColor: colorScheme === 'dark' ? '#333' : '#f5f5f5',
+              borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
             }]}
             placeholder="0 (Free)"
-            placeholderTextColor={Colors[colorScheme ?? 'light'].text}
+            placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
             value={entryFee}
             onChangeText={setEntryFee}
             keyboardType="numeric"
@@ -302,7 +302,7 @@ export function CreateMatchBox({ onCreateMatch }: CreateMatchBoxProps) {
             onPress={() => setEquipmentProvided(!equipmentProvided)}
           >
             <Text style={[styles.equipmentLabel, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Equipment Provided
             </Text>
@@ -310,7 +310,7 @@ export function CreateMatchBox({ onCreateMatch }: CreateMatchBoxProps) {
               styles.checkbox,
               { 
                 backgroundColor: equipmentProvided 
-                  ? Colors[colorScheme ?? 'light'].tint 
+                  ? getColors(colorScheme).tint 
                   : 'transparent',
                 borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
               }
@@ -325,18 +325,18 @@ export function CreateMatchBox({ onCreateMatch }: CreateMatchBoxProps) {
         {/* Description */}
         <View style={styles.inputContainer}>
           <Text style={[styles.label, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             Description
           </Text>
           <TextInput
             style={[styles.textArea, { 
-              color: Colors[colorScheme ?? 'light'].text,
-              backgroundColor: Colors[colorScheme ?? 'light'].card,
-              borderColor: Colors[colorScheme ?? 'light'].border
+              color: getColors(colorScheme).text,
+              backgroundColor: colorScheme === 'dark' ? '#333' : '#f5f5f5',
+              borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
             }]}
             placeholder="Additional details about the match..."
-            placeholderTextColor={Colors[colorScheme ?? 'light'].text}
+            placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
             value={description}
             onChangeText={setDescription}
             multiline
@@ -351,7 +351,7 @@ export function CreateMatchBox({ onCreateMatch }: CreateMatchBoxProps) {
         style={[
           styles.createButton,
           { 
-            backgroundColor: Colors[colorScheme ?? 'light'].tint,
+            backgroundColor: getColors(colorScheme).tint,
             opacity: isCreating ? 0.6 : 1
           }
         ]}

@@ -1,6 +1,6 @@
 import { Text } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { FlatList, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
@@ -160,14 +160,14 @@ export default function MessagesScreen() {
   const renderMessageItem = ({ item }: { item: Message }) => (
     <TouchableOpacity
       style={[styles.messageItem, { 
-        backgroundColor: Colors[colorScheme ?? 'light'].card,
+        backgroundColor: getColors(colorScheme).card,
         borderColor: colorScheme === 'dark' ? '#555' : '#e0e0e0'
       }]}
       onPress={() => handleMessagePress(item)}
     >
       <View style={styles.messageLeft}>
         <View style={[styles.messageAvatar, { 
-          backgroundColor: item.user.isOnline ? Colors[colorScheme ?? 'light'].success : Colors[colorScheme ?? 'light'].text
+          backgroundColor: item.user.isOnline ? getColors(colorScheme).success : getColors(colorScheme).text
         }]}>
           <Text style={styles.messageAvatarText}>
             {item.user.name.charAt(0)}
@@ -176,18 +176,18 @@ export default function MessagesScreen() {
         <View style={styles.messageContent}>
           <View style={styles.messageHeader}>
             <Text style={[styles.messageName, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               {item.user.name}
             </Text>
             <Text style={[styles.messageTime, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               {formatTime(item.timestamp)}
             </Text>
           </View>
           <Text style={[styles.messageText, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {item.lastMessage}
           </Text>
@@ -195,7 +195,7 @@ export default function MessagesScreen() {
       </View>
       {item.unreadCount > 0 && (
         <View style={[styles.messageBadge, { 
-          backgroundColor: Colors[colorScheme ?? 'light'].tint 
+          backgroundColor: getColors(colorScheme).tint 
         }]}>
           <Text style={styles.messageBadgeText}>
             {item.unreadCount}
@@ -214,7 +214,7 @@ export default function MessagesScreen() {
         styles.chatMessage,
         { 
           backgroundColor: item.isFromCurrentUser 
-            ? Colors[colorScheme ?? 'light'].tint 
+            ? getColors(colorScheme).tint 
             : (colorScheme === 'dark' ? '#333' : '#f8f9fa'),
           borderColor: colorScheme === 'dark' ? '#555' : '#e0e0e0'
         }
@@ -224,7 +224,7 @@ export default function MessagesScreen() {
           { 
             color: item.isFromCurrentUser 
               ? 'white' 
-              : Colors[colorScheme ?? 'light'].text 
+              : getColors(colorScheme).text 
           }
         ]}>
           {item.message}
@@ -234,7 +234,7 @@ export default function MessagesScreen() {
           { 
             color: item.isFromCurrentUser 
               ? 'rgba(255,255,255,0.7)' 
-              : Colors[colorScheme ?? 'light'].text 
+              : getColors(colorScheme).text 
           }
         ]}>
           {formatChatTime(item.timestamp)}
@@ -247,11 +247,11 @@ export default function MessagesScreen() {
     const selectedMessage = messages.find(m => m.id === selectedChat);
     return (
       <View style={[styles.container, { 
-        backgroundColor: Colors[colorScheme ?? 'light'].background
+        backgroundColor: getColors(colorScheme).background
       }]}>
         {/* Chat Header */}
         <View style={[styles.chatHeader, { 
-          backgroundColor: Colors[colorScheme ?? 'light'].card,
+          backgroundColor: getColors(colorScheme).card,
           borderBottomColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
         }]}>
           <TouchableOpacity 
@@ -262,7 +262,7 @@ export default function MessagesScreen() {
           </TouchableOpacity>
           <View style={styles.chatHeaderInfo}>
             <Text style={[styles.chatHeaderName, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               {selectedMessage?.user.name}
             </Text>
@@ -288,13 +288,13 @@ export default function MessagesScreen() {
 
         {/* Message Input */}
         <View style={[styles.messageInputContainer, { 
-          backgroundColor: Colors[colorScheme ?? 'light'].card,
+          backgroundColor: getColors(colorScheme).card,
           borderTopColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
         }]}>
           <TextInput
             style={[styles.messageInput, { 
-              color: Colors[colorScheme ?? 'light'].text,
-              backgroundColor: Colors[colorScheme ?? 'light'].background,
+              color: getColors(colorScheme).text,
+              backgroundColor: getColors(colorScheme).background,
               borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
             }]}
             placeholder="Type a message..."
@@ -306,7 +306,7 @@ export default function MessagesScreen() {
           />
           <TouchableOpacity 
             style={[styles.sendButton, { 
-              backgroundColor: Colors[colorScheme ?? 'light'].tint 
+              backgroundColor: getColors(colorScheme).tint 
             }]}
             onPress={handleSendMessage}
             disabled={!newMessage.trim()}
@@ -334,7 +334,7 @@ export default function MessagesScreen() {
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { 
-          color: Colors[colorScheme ?? 'light'].text 
+          color: getColors(colorScheme).text 
         }]}>
           Messages
         </Text>
@@ -345,12 +345,12 @@ export default function MessagesScreen() {
 
       {/* Search Bar */}
       <View style={[styles.searchContainer, { 
-        backgroundColor: Colors[colorScheme ?? 'light'].background
+        backgroundColor: getColors(colorScheme).background
       }]}>
         <TextInput
           style={[styles.searchInput, { 
-            color: Colors[colorScheme ?? 'light'].text,
-            backgroundColor: Colors[colorScheme ?? 'light'].card,
+            color: getColors(colorScheme).text,
+            backgroundColor: getColors(colorScheme).card,
             borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
           }]}
           placeholder="Search messages..."

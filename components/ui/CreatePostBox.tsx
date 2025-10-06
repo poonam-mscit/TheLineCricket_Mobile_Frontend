@@ -1,6 +1,6 @@
 import { Text } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -43,13 +43,13 @@ export function CreatePostBox({ onCreatePost }: CreatePostBoxProps) {
 
   return (
     <View style={[styles.container, { 
-      backgroundColor: Colors[colorScheme ?? 'light'].background,
-      borderColor: Colors[colorScheme ?? 'light'].border
+      backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#ffffff',
+      borderColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
     }]}>
       {/* Header */}
       <View style={styles.header}>
         <View style={[styles.avatar, { 
-          backgroundColor: Colors[colorScheme ?? 'light'].tint 
+          backgroundColor: getColors(colorScheme).tint 
         }]}>
           <Text style={styles.avatarText}>
             {user?.fullName?.charAt(0).toUpperCase() || 'U'}
@@ -58,12 +58,12 @@ export function CreatePostBox({ onCreatePost }: CreatePostBoxProps) {
         <View style={styles.inputContainer}>
           <TextInput
             style={[styles.textInput, { 
-              color: Colors[colorScheme ?? 'light'].text,
-              backgroundColor: Colors[colorScheme ?? 'light'].card,
-              borderColor: Colors[colorScheme ?? 'light'].border
+              color: getColors(colorScheme).text,
+              backgroundColor: colorScheme === 'dark' ? '#333' : '#f5f5f5',
+              borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
             }]}
             placeholder="What's happening in cricket today?"
-            placeholderTextColor={Colors[colorScheme ?? 'light'].text}
+            placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
             value={postContent}
             onChangeText={setPostContent}
             multiline
@@ -71,7 +71,7 @@ export function CreatePostBox({ onCreatePost }: CreatePostBoxProps) {
             textAlignVertical="top"
           />
           <Text style={[styles.characterCount, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {postContent.length}/500
           </Text>
@@ -83,12 +83,12 @@ export function CreatePostBox({ onCreatePost }: CreatePostBoxProps) {
         <View style={styles.leftActions}>
           <TouchableOpacity style={styles.actionButton}>
             <Text style={[styles.actionIcon, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               📷
             </Text>
             <Text style={[styles.actionText, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Photo
             </Text>
@@ -96,12 +96,12 @@ export function CreatePostBox({ onCreatePost }: CreatePostBoxProps) {
           
           <TouchableOpacity style={styles.actionButton}>
             <Text style={[styles.actionIcon, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               📍
             </Text>
             <Text style={[styles.actionText, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Location
             </Text>
@@ -113,7 +113,7 @@ export function CreatePostBox({ onCreatePost }: CreatePostBoxProps) {
             styles.postButton, 
             { 
               backgroundColor: postContent.trim() 
-                ? Colors[colorScheme ?? 'light'].tint 
+                ? getColors(colorScheme).tint 
                 : '#ccc',
               opacity: postContent.trim() && !isCreating ? 1 : 0.6
             }

@@ -1,6 +1,6 @@
 import { Text } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import React, { useState } from 'react';
 import { Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
@@ -204,17 +204,17 @@ export function InstagramHeader({
         </Text>
         <View style={styles.notificationContent}>
           <Text style={[styles.notificationTitle, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {notification.title}
           </Text>
           <Text style={[styles.notificationMessage, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {notification.message}
           </Text>
           <Text style={[styles.notificationTime, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {formatTime(notification.timestamp)}
           </Text>
@@ -222,7 +222,7 @@ export function InstagramHeader({
       </View>
       {!notification.isRead && (
         <View style={[styles.unreadDot, { 
-          backgroundColor: Colors[colorScheme ?? 'light'].tint 
+          backgroundColor: getColors(colorScheme).tint 
         }]} />
       )}
     </TouchableOpacity>
@@ -248,18 +248,18 @@ export function InstagramHeader({
         <View style={styles.messageContent}>
           <View style={styles.messageHeader}>
             <Text style={[styles.messageName, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               {message.user.name}
             </Text>
             <Text style={[styles.messageTime, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               {formatTime(message.timestamp)}
             </Text>
           </View>
           <Text style={[styles.messageText, { 
-            color: Colors[colorScheme ?? 'light'].text 
+            color: getColors(colorScheme).text 
           }]}>
             {message.lastMessage}
           </Text>
@@ -267,7 +267,7 @@ export function InstagramHeader({
       </View>
       {message.unreadCount > 0 && (
         <View style={[styles.messageBadge, { 
-          backgroundColor: Colors[colorScheme ?? 'light'].tint 
+          backgroundColor: getColors(colorScheme).tint 
         }]}>
           <Text style={styles.messageBadgeText}>
             {message.unreadCount}
@@ -283,10 +283,10 @@ export function InstagramHeader({
       borderBottomColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
     }]}>
       <View style={styles.headerLeft}>
-        <Text style={[styles.logo, { color: Colors[colorScheme ?? 'light'].text }]}>
+        <Text style={[styles.logo, { color: getColors(colorScheme).text }]}>
           🏏
         </Text>
-        <Text style={[styles.appName, { color: Colors[colorScheme ?? 'light'].text }]}>
+        <Text style={[styles.appName, { color: getColors(colorScheme).text }]}>
           The Line Cricket
         </Text>
       </View>
@@ -340,7 +340,7 @@ export function InstagramHeader({
             borderBottomColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
           }]}>
             <Text style={[styles.modalTitle, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Notifications
             </Text>
@@ -358,7 +358,7 @@ export function InstagramHeader({
           
           <TouchableOpacity 
             style={[styles.viewAllButton, { 
-              backgroundColor: Colors[colorScheme ?? 'light'].tint 
+              backgroundColor: getColors(colorScheme).tint 
             }]}
             onPress={() => {
               setShowNotifications(false);
@@ -387,7 +387,7 @@ export function InstagramHeader({
             borderBottomColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
           }]}>
             <Text style={[styles.modalTitle, { 
-              color: Colors[colorScheme ?? 'light'].text 
+              color: getColors(colorScheme).text 
             }]}>
               Messages
             </Text>
@@ -405,7 +405,7 @@ export function InstagramHeader({
           
           <TouchableOpacity 
             style={[styles.viewAllButton, { 
-              backgroundColor: Colors[colorScheme ?? 'light'].tint 
+              backgroundColor: getColors(colorScheme).tint 
             }]}
             onPress={() => {
               setShowMessages(false);

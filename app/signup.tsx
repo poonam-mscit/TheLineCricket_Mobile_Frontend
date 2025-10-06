@@ -1,6 +1,6 @@
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
@@ -56,21 +56,21 @@ export default function SignupScreen() {
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.formContainer}>
-          <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]}>
+          <Text style={[styles.title, { color: getColors(colorScheme).text }]}>
             Create Account
           </Text>
-          <Text style={[styles.subtitle, { color: Colors[colorScheme ?? 'light'].text }]}>
+          <Text style={[styles.subtitle, { color: getColors(colorScheme).text }]}>
             Join us today
           </Text>
 
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: Colors[colorScheme ?? 'light'].text }]}>
+            <Text style={[styles.label, { color: getColors(colorScheme).text }]}>
               Full Name
             </Text>
             <TextInput
               style={[styles.input, { 
-                backgroundColor: Colors[colorScheme ?? 'light'].card,
-                color: Colors[colorScheme ?? 'light'].text,
+                backgroundColor: getColors(colorScheme).card,
+                color: getColors(colorScheme).text,
                 borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
               }]}
               placeholder="Enter your full name"
@@ -82,13 +82,13 @@ export default function SignupScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: Colors[colorScheme ?? 'light'].text }]}>
+            <Text style={[styles.label, { color: getColors(colorScheme).text }]}>
               Username
             </Text>
             <TextInput
               style={[styles.input, { 
-                backgroundColor: Colors[colorScheme ?? 'light'].card,
-                color: Colors[colorScheme ?? 'light'].text,
+                backgroundColor: getColors(colorScheme).card,
+                color: getColors(colorScheme).text,
                 borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
               }]}
               placeholder="Choose a username"
@@ -101,13 +101,13 @@ export default function SignupScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: Colors[colorScheme ?? 'light'].text }]}>
+            <Text style={[styles.label, { color: getColors(colorScheme).text }]}>
               Email
             </Text>
             <TextInput
               style={[styles.input, { 
-                backgroundColor: Colors[colorScheme ?? 'light'].card,
-                color: Colors[colorScheme ?? 'light'].text,
+                backgroundColor: getColors(colorScheme).card,
+                color: getColors(colorScheme).text,
                 borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
               }]}
               placeholder="Enter your email"
@@ -122,13 +122,13 @@ export default function SignupScreen() {
 
           <View style={styles.rowContainer}>
             <View style={[styles.inputContainer, { flex: 1, marginRight: 10 }]}>
-              <Text style={[styles.label, { color: Colors[colorScheme ?? 'light'].text }]}>
+              <Text style={[styles.label, { color: getColors(colorScheme).text }]}>
                 Age
               </Text>
               <TextInput
                 style={[styles.input, { 
-                  backgroundColor: Colors[colorScheme ?? 'light'].card,
-                  color: Colors[colorScheme ?? 'light'].text,
+                  backgroundColor: getColors(colorScheme).card,
+                  color: getColors(colorScheme).text,
                   borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
                 }]}
                 placeholder="Age"
@@ -140,13 +140,13 @@ export default function SignupScreen() {
             </View>
 
             <View style={[styles.inputContainer, { flex: 2, marginLeft: 10 }]}>
-              <Text style={[styles.label, { color: Colors[colorScheme ?? 'light'].text }]}>
+              <Text style={[styles.label, { color: getColors(colorScheme).text }]}>
                 Location
               </Text>
               <TextInput
                 style={[styles.input, { 
-                  backgroundColor: Colors[colorScheme ?? 'light'].card,
-                  color: Colors[colorScheme ?? 'light'].text,
+                  backgroundColor: getColors(colorScheme).card,
+                  color: getColors(colorScheme).text,
                   borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
                 }]}
                 placeholder="City, Country"
@@ -159,13 +159,13 @@ export default function SignupScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: Colors[colorScheme ?? 'light'].text }]}>
+            <Text style={[styles.label, { color: getColors(colorScheme).text }]}>
               Password
             </Text>
             <TextInput
               style={[styles.input, { 
-                backgroundColor: Colors[colorScheme ?? 'light'].card,
-                color: Colors[colorScheme ?? 'light'].text,
+                backgroundColor: getColors(colorScheme).card,
+                color: getColors(colorScheme).text,
                 borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
               }]}
               placeholder="Create a password"
@@ -177,13 +177,13 @@ export default function SignupScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: Colors[colorScheme ?? 'light'].text }]}>
+            <Text style={[styles.label, { color: getColors(colorScheme).text }]}>
               Confirm Password
             </Text>
             <TextInput
               style={[styles.input, { 
-                backgroundColor: Colors[colorScheme ?? 'light'].card,
-                color: Colors[colorScheme ?? 'light'].text,
+                backgroundColor: getColors(colorScheme).card,
+                color: getColors(colorScheme).text,
                 borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
               }]}
               placeholder="Confirm your password"
@@ -195,7 +195,7 @@ export default function SignupScreen() {
           </View>
 
           <TouchableOpacity 
-            style={[styles.signupButton, { backgroundColor: Colors[colorScheme ?? 'light'].tint }]}
+            style={[styles.signupButton, { backgroundColor: getColors(colorScheme).tint }]}
             onPress={handleSignup}
           >
             <Text style={styles.signupButtonText}>
@@ -204,11 +204,11 @@ export default function SignupScreen() {
           </TouchableOpacity>
 
           <View style={styles.loginContainer}>
-            <Text style={[styles.loginText, { color: Colors[colorScheme ?? 'light'].text }]}>
+            <Text style={[styles.loginText, { color: getColors(colorScheme).text }]}>
               Already have an account?{' '}
             </Text>
             <Link href="/" asChild>
-              <Text style={[styles.loginLink, { color: Colors[colorScheme ?? 'light'].tint }]}>
+              <Text style={[styles.loginLink, { color: getColors(colorScheme).tint }]}>
                 Sign In
               </Text>
             </Link>
