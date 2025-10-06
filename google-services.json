@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1080197808632",
+    "project_id": "linecricket-1a2b3",
+    "storage_bucket": "linecricket-1a2b3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1080197808632:android:d80a3dbfea3c0a58d3d60d",
+        "android_client_info": {
+          "package_name": "com.linecricket.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJ_Vh_J0BHUEsRX3PexJWWjk2PbqhDZo0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
