@@ -6,10 +6,12 @@ import environment from '../config/environment';
 // Create axios instance
 const apiClient = axios.create({
   baseURL: environment.API_BASE_URL,
-  timeout: 10000,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
+  withCredentials: true, // Enable CORS credentials
 });
 
 // Request interceptor to add auth token
@@ -46,6 +48,12 @@ apiClient.interceptors.response.use(
         if (refreshToken) {
           const response = await axios.post(`${environment.API_BASE_URL}/auth/refresh`, {
             refresh_token: refreshToken
+          }, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            withCredentials: true
           });
           
           const { access_token } = response.data;

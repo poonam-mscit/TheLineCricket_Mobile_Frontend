@@ -92,7 +92,7 @@ class AuthService {
       } catch (error) {
         // If user doesn't exist, create them
         if (error.response?.status === 404) {
-          const response = await apiClient.post('/auth/firebase/signup', userData);
+          const response = await apiClient.post('/auth/register', userData);
           return response.data;
         }
         throw error;
@@ -104,9 +104,47 @@ class AuthService {
   }
 
   /**
-   * Register new user with email and password
+   * Register new user with email and password (Backend only)
    */
   async register(email, password, userData = {}) {
+    try {
+      // Register with backend API
+      const response = await apiClient.post('/auth/register', {
+        email,
+        password,
+        username: userData.username || email.split('@')[0],
+        full_name: userData.fullName,
+        age: userData.age ? parseInt(userData.age) : null,
+        location: userData.location,
+        contact_number: userData.contactNumber,
+        profile_type: userData.profileType || 'player'
+      });
+      
+      const { access_token, refresh_token, user } = response.data;
+      
+      // Store tokens
+      await tokenService.setTokens(access_token, refresh_token);
+      
+      // Update current user state
+      this.currentUser = user;
+      this.isAuthenticated = true;
+      this.notifyListeners();
+      
+      return {
+        success: true,
+        user: user,
+        message: 'Registration successful'
+      };
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Register with Firebase (legacy method)
+   */
+  async registerWithFirebase(email, password, userData = {}) {
     try {
       // Create Firebase user
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -135,7 +173,7 @@ class AuthService {
       };
 
       // Create user in backend
-      const response = await apiClient.post('/auth/firebase/signup', backendUserData);
+      const response = await apiClient.post('/auth/register', backendUserData);
       
       return {
         success: true,
@@ -154,9 +192,41 @@ class AuthService {
   }
 
   /**
-   * Sign in with email and password
+   * Sign in with email and password (Backend only)
    */
   async login(email, password) {
+    try {
+      // Login with backend API
+      const response = await apiClient.post('/auth/login', {
+        email,
+        password
+      });
+      
+      const { access_token, refresh_token, user } = response.data;
+      
+      // Store tokens
+      await tokenService.setTokens(access_token, refresh_token);
+      
+      // Update current user state
+      this.currentUser = user;
+      this.isAuthenticated = true;
+      this.notifyListeners();
+      
+      return {
+        success: true,
+        user: user,
+        message: 'Login successful'
+      };
+    } catch (error) {
+      console.error('Login error:', error);
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Sign in with Firebase (legacy method)
+   */
+  async loginWithFirebase(email, password) {
     try {
       // Sign in with Firebase
       const userCredential = await signInWithEmailAndPassword(auth, email, password);

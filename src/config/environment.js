@@ -1,8 +1,8 @@
 // Environment configuration
 const ENV = {
   development: {
-    API_BASE_URL: 'http://localhost:5000/api',
-    SOCKET_URL: 'http://localhost:5000',
+    API_BASE_URL: 'http://43.205.177.37:5000/api',
+    SOCKET_URL: 'http://43.205.177.37:5000',
     FIREBASE_CONFIG: {
       apiKey: "AIzaSyDJ_Vh_J0BHUEsRX3PexJWWjk2PbqhDZo0",
       authDomain: "linecricket-1a2b3.firebaseapp.com",
@@ -13,8 +13,8 @@ const ENV = {
     }
   },
   production: {
-    API_BASE_URL: 'https://your-api.com/api',
-    SOCKET_URL: 'https://your-api.com',
+    API_BASE_URL: 'http://43.205.177.37:5000/api',
+    SOCKET_URL: 'http://43.205.177.37:5000',
     FIREBASE_CONFIG: {
       apiKey: "AIzaSyDJ_Vh_J0BHUEsRX3PexJWWjk2PbqhDZo0",
       authDomain: "linecricket-1a2b3.firebaseapp.com",
@@ -28,8 +28,8 @@ const ENV = {
 
 // Default environment configuration
 const defaultConfig = {
-  API_BASE_URL: 'http://localhost:5000/api',
-  SOCKET_URL: 'http://localhost:5000',
+  API_BASE_URL: 'http://43.205.177.37:5000/api',
+  SOCKET_URL: 'http://43.205.177.37:5000',
   FIREBASE_CONFIG: {
     apiKey: "AIzaSyDJ_Vh_J0BHUEsRX3PexJWWjk2PbqhDZo0",
     authDomain: "linecricket-1a2b3.firebaseapp.com",

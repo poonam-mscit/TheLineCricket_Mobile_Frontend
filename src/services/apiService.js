@@ -163,7 +163,7 @@ class ApiService {
   // Get conversations
   async getConversations() {
     try {
-      const response = await apiClient.get('/conversations');
+      const response = await apiClient.get('/messaging/conversations');
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -173,8 +173,8 @@ class ApiService {
   // Get conversation messages
   async getConversationMessages(conversationId, page = 1, perPage = 50) {
     try {
-      const response = await apiClient.get(`/conversations/${conversationId}/messages`, {
-        params: { page, per_page: perPage }
+      const response = await apiClient.get(`/messaging/messages`, {
+        params: { conversation_id: conversationId, page, per_page: perPage }
       });
       return response.data;
     } catch (error) {
@@ -185,7 +185,10 @@ class ApiService {
   // Send message
   async sendMessage(conversationId, messageData) {
     try {
-      const response = await apiClient.post(`/conversations/${conversationId}/messages`, messageData);
+      const response = await apiClient.post(`/messaging/messages`, {
+        conversation_id: conversationId,
+        ...messageData
+      });
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -195,7 +198,7 @@ class ApiService {
   // Create direct conversation
   async createDirectConversation(userId) {
     try {
-      const response = await apiClient.post('/conversations/direct', { user_id: userId });
+      const response = await apiClient.post('/messaging/conversations', { user_id: userId });
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -328,6 +331,172 @@ class ApiService {
   async getFollowing(userId, page = 1, perPage = 20) {
     try {
       const response = await apiClient.get(`/following/${userId}`, {
+        params: { page, per_page: perPage }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Search APIs
+   */
+  
+  // Global search
+  async globalSearch(query, filters = {}) {
+    try {
+      const response = await apiClient.get('/search/global', {
+        params: { query, ...filters }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Get search suggestions
+  async getSearchSuggestions(query) {
+    try {
+      const response = await apiClient.get('/search/suggestions', {
+        params: { query }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Get trending searches
+  async getTrendingSearches() {
+    try {
+      const response = await apiClient.get('/search/trending');
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Profile APIs
+   */
+  
+  // Get player profile
+  async getPlayerProfile(playerId) {
+    try {
+      const response = await apiClient.get(`/player-profile/${playerId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Get academy profile
+  async getAcademyProfile(academyId) {
+    try {
+      const response = await apiClient.get(`/academy-profile/${academyId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Get community profile
+  async getCommunityProfile(communityId) {
+    try {
+      const response = await apiClient.get(`/community-profile/${communityId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Get venue profile
+  async getVenueProfile(venueId) {
+    try {
+      const response = await apiClient.get(`/venue-profile/${venueId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Relationship APIs
+   */
+  
+  // Block user
+  async blockUser(userId) {
+    try {
+      const response = await apiClient.post('/block', { user_id: userId });
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Unblock user
+  async unblockUser(userId) {
+    try {
+      const response = await apiClient.post('/unblock', { user_id: userId });
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Create connection
+  async createConnection(userId) {
+    try {
+      const response = await apiClient.post('/connection', { user_id: userId });
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Admin APIs
+   */
+  
+  // Get admin dashboard data
+  async getAdminDashboard() {
+    try {
+      const response = await apiClient.get('/admin/dashboard');
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Get admin users
+  async getAdminUsers(page = 1, perPage = 20) {
+    try {
+      const response = await apiClient.get('/admin/users', {
+        params: { page, per_page: perPage }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Get admin posts
+  async getAdminPosts(page = 1, perPage = 20) {
+    try {
+      const response = await apiClient.get('/admin/posts', {
+        params: { page, per_page: perPage }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Get admin matches
+  async getAdminMatches(page = 1, perPage = 20) {
+    try {
+      const response = await apiClient.get('/admin/matches', {
         params: { page, per_page: perPage }
       });
       return response.data;

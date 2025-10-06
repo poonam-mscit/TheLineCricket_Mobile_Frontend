@@ -27,13 +27,14 @@ class SocketService {
         throw new Error('No authentication token available');
       }
 
-      this.socket = io(environment.development.SOCKET_URL, {
+      this.socket = io(environment.SOCKET_URL, {
         auth: {
           token: token
         },
         transports: ['websocket', 'polling'],
         timeout: 20000,
-        forceNew: true
+        forceNew: true,
+        withCredentials: true
       });
 
       this.setupEventListeners();
@@ -151,6 +152,51 @@ class SocketService {
 
     this.socket.on('match_leave', (data) => {
       this.emit('match_leave', data);
+    });
+
+    // Live match events
+    this.socket.on('live_score_update', (data) => {
+      this.emit('live_score_update', data);
+    });
+
+    this.socket.on('live_commentary', (data) => {
+      this.emit('live_commentary', data);
+    });
+
+    this.socket.on('live_chat_message', (data) => {
+      this.emit('live_chat_message', data);
+    });
+
+    // User presence events
+    this.socket.on('user_online', (data) => {
+      this.emit('user_online', data);
+    });
+
+    this.socket.on('user_offline', (data) => {
+      this.emit('user_offline', data);
+    });
+
+    // Post events
+    this.socket.on('new_post', (data) => {
+      this.emit('new_post', data);
+    });
+
+    this.socket.on('post_like', (data) => {
+      this.emit('post_like', data);
+    });
+
+    this.socket.on('post_comment', (data) => {
+      this.emit('post_comment', data);
+    });
+
+    // Search events
+    this.socket.on('search_suggestion', (data) => {
+      this.emit('search_suggestion', data);
+    });
+
+    // Admin events
+    this.socket.on('admin_alert', (data) => {
+      this.emit('admin_alert', data);
     });
 
     // Error handling
