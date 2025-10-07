@@ -6,12 +6,21 @@ import environment from '../config/environment';
 // Create axios instance
 const apiClient = axios.create({
   baseURL: environment.API_BASE_URL,
-  timeout: 15000,
+  timeout: 30000, // Increased timeout
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    'User-Agent': 'TheLineCricket-Mobile/1.0.0',
   },
   withCredentials: true, // Enable CORS credentials
+  // Add network configuration for React Native
+  adapter: 'http', // Force HTTP adapter
+  validateStatus: function (status) {
+    return status >= 200 && status < 300; // Default
+  },
+  // Add retry configuration
+  retry: 3,
+  retryDelay: 1000,
 });
 
 // Request interceptor to add auth token

@@ -7,6 +7,7 @@ import {
     signOut,
     updateProfile
 } from 'firebase/auth';
+import environment from '../config/environment';
 import { handleApiError, handleFirebaseError } from '../utils/errorHandler';
 import apiClient from './apiClient';
 import { auth } from './firebase';
@@ -85,20 +86,37 @@ class AuthService {
         auth_provider: 'firebase'
       };
 
+      console.log('🔄 Attempting to sync user with backend...');
+      console.log('📍 Backend URL:', environment.API_BASE_URL);
+
       // Try to get user from backend first
       try {
+        console.log('🔍 Checking if user exists in backend...');
         const response = await apiClient.get('/auth/me');
+        console.log('✅ User found in backend:', response.data);
         return response.data;
       } catch (error) {
+        console.log('⚠️ User not found in backend, creating new user...');
+        
         // If user doesn't exist, create them
         if (error.response?.status === 404) {
+          console.log('📝 Creating new user in backend...');
           const response = await apiClient.post('/auth/register', userData);
+          console.log('✅ User created successfully:', response.data);
           return response.data;
         }
+        
+        // Handle network errors specifically
+        if (error.code === 'NETWORK_ERROR' || error.code === 'ECONNREFUSED' || !error.response) {
+          console.error('🌐 Network Error - Backend server may be unreachable');
+          console.error('🔧 Please check if server is running on:', environment.API_BASE_URL);
+          throw new Error(`Cannot connect to backend server at ${environment.API_BASE_URL}. Please check if the server is running.`);
+        }
+        
         throw error;
       }
     } catch (error) {
-      console.error('Failed to sync user with backend:', error);
+      console.error('❌ Failed to sync user with backend:', error);
       throw error;
     }
   }
