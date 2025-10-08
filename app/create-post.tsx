@@ -1,5 +1,6 @@
 import { Text } from '@/components/Themed';
 import { getColors } from '@/constants/Colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
@@ -85,6 +86,49 @@ export default function CreatePostScreen() {
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Create new post object
+      const newPost = {
+        id: Date.now().toString(),
+        content: formData.caption,
+        images: selectedMedia.filter(m => m.type === 'image').map(m => m.uri),
+        video: selectedMedia.find(m => m.type === 'video')?.uri || '',
+        location: formData.location,
+        visibility: formData.visibility,
+        postType: formData.post_type,
+        hashtags: formData.hashtags,
+        mentions: formData.mentions,
+        author: {
+          id: user.id,
+          name: user.fullName,
+          username: user.username,
+          avatar: user.avatar,
+          verified: user.verified
+        },
+        timestamp: new Date(),
+        likes: 0,
+        comments: 0,
+        shares: 0,
+        isLiked: false,
+        isBookmarked: false
+      };
+
+      // Store in AsyncStorage for persistence
+      try {
+        // Store in home feed
+        const existingHomePosts = await AsyncStorage.getItem('home_posts');
+        const homePosts = existingHomePosts ? JSON.parse(existingHomePosts) : [];
+        homePosts.unshift(newPost); // Add to beginning of array
+        await AsyncStorage.setItem('home_posts', JSON.stringify(homePosts));
+
+        // Store in user's profile posts
+        const existingUserPosts = await AsyncStorage.getItem('user_posts');
+        const userPosts = existingUserPosts ? JSON.parse(existingUserPosts) : [];
+        userPosts.unshift(newPost); // Add to beginning of array
+        await AsyncStorage.setItem('user_posts', JSON.stringify(userPosts));
+      } catch (storageError) {
+        console.log('Storage error:', storageError);
+      }
       
       Alert.alert(
         'Post Created!',

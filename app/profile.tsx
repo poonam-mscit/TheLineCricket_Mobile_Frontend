@@ -1,7 +1,8 @@
 import { Text } from '@/components/Themed';
 import { getColors } from '@/constants/Colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Alert,
     Dimensions,
@@ -174,9 +175,28 @@ export default function ProfileScreen() {
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
+  // Load posts from storage on component mount
+  useEffect(() => {
+    loadUserPostsFromStorage();
+  }, []);
+
+  const loadUserPostsFromStorage = async () => {
+    try {
+      const storedPosts = await AsyncStorage.getItem('user_posts');
+      if (storedPosts) {
+        const parsedPosts = JSON.parse(storedPosts);
+        setPosts(parsedPosts);
+      }
+    } catch (error) {
+      console.log('Error loading user posts from storage:', error);
+    }
+  };
+
   // Event handlers
   const handleRefresh = async () => {
     setIsRefreshing(true);
+    // Reload posts from storage
+    await loadUserPostsFromStorage();
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsRefreshing(false);

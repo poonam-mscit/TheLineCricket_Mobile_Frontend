@@ -1,5 +1,6 @@
 import { Text } from '@/components/Themed';
 import { getColors } from '@/constants/Colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -200,6 +201,8 @@ export default function HomeScreen() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
+    // Reload posts from storage
+    await loadPostsFromStorage();
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsRefreshing(false);
@@ -256,6 +259,11 @@ export default function HomeScreen() {
     Alert.alert('Create Team', 'Team created successfully!');
   };
 
+  // Load posts from storage on component mount
+  useEffect(() => {
+    loadPostsFromStorage();
+  }, []);
+
   // Auto-refresh effect
   useEffect(() => {
     const interval = setInterval(() => {
@@ -265,6 +273,18 @@ export default function HomeScreen() {
 
     return () => clearInterval(interval);
   }, []);
+
+  const loadPostsFromStorage = async () => {
+    try {
+      const storedPosts = await AsyncStorage.getItem('home_posts');
+      if (storedPosts) {
+        const parsedPosts = JSON.parse(storedPosts);
+        setPosts(parsedPosts);
+      }
+    } catch (error) {
+      console.log('Error loading posts from storage:', error);
+    }
+  };
 
   const renderHeader = () => (
     <InstagramHeader 
