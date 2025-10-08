@@ -146,6 +146,32 @@ export function InstagramBottomNav({
                 →
               </Text>
             </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.createOption, { 
+                backgroundColor: getColors(colorScheme).background,
+                borderColor: getColors(colorScheme).border
+              }]}
+              onPress={() => {
+                router.push('/create-job');
+                setShowCreateModal(false);
+              }}
+            >
+              <View style={[styles.createOptionIcon, { backgroundColor: '#F59E0B' }]}>
+                <Text style={styles.createOptionEmoji}>💼</Text>
+              </View>
+              <View style={styles.createOptionContent}>
+                <Text style={[styles.createOptionTitle, { color: getColors(colorScheme).text }]}>
+                  Post Job
+                </Text>
+                <Text style={[styles.createOptionDescription, { color: getColors(colorScheme).text }]}>
+                  Create job postings for cricket opportunities
+                </Text>
+              </View>
+              <Text style={[styles.createOptionArrow, { color: getColors(colorScheme).text }]}>
+                →
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
