@@ -1,7 +1,8 @@
 import { Text } from '@/components/Themed';
 import { getColors } from '@/constants/Colors';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Modal, ScrollView, StyleSheet, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { Modal, StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native';
 
 interface InstagramBottomNavProps {
   activeSection: string;
@@ -20,7 +21,6 @@ export function InstagramBottomNav({
 }: InstagramBottomNavProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createType, setCreateType] = useState<'post'>('post');
-  const [postContent, setPostContent] = useState('');
   
   const colorScheme = useColorScheme();
 
@@ -63,137 +63,90 @@ export function InstagramBottomNav({
   };
 
   const handleCreateSubmit = () => {
-    if (createType === 'post' && postContent.trim()) {
-      onCreatePost?.(postContent);
-      setPostContent('');
-    }
     setShowCreateModal(false);
   };
 
   const renderCreateModal = () => (
     <Modal
       visible={showCreateModal}
-      animationType="slide"
-      presentationStyle="pageSheet"
+      animationType="fade"
+      transparent={true}
       onRequestClose={() => setShowCreateModal(false)}
     >
-      <View style={[styles.modalContainer, { 
-        backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#ffffff'
-      }]}>
-        <View style={[styles.modalHeader, { 
-          backgroundColor: colorScheme === 'dark' ? '#2c2c2c' : '#f8f9fa',
-          borderBottomColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalContainer, { 
+          backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#ffffff'
         }]}>
-          <Text style={[styles.modalTitle, { 
-            color: getColors(colorScheme).text 
+          <View style={[styles.modalHeader, { 
+            backgroundColor: colorScheme === 'dark' ? '#2c2c2c' : '#f8f9fa',
+            borderBottomColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
           }]}>
-            Create Content
-          </Text>
-          <TouchableOpacity 
-            style={styles.closeButton}
-            onPress={() => setShowCreateModal(false)}
-          >
-            <Text style={styles.closeButtonText}>✕</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={[styles.createTypeSelector, { justifyContent: 'center' }]}>
-          <TouchableOpacity 
-            style={[styles.createTypeButton, { 
-              backgroundColor: createType === 'post' ? getColors(colorScheme).tint : 'transparent',
-              borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
-            }]}
-            onPress={() => setCreateType('post')}
-          >
-            <Text style={[styles.createTypeIcon, { 
-              color: createType === 'post' ? 'white' : getColors(colorScheme).text 
-            }]}>
-              📝
-            </Text>
-            <Text style={[styles.createTypeLabel, { 
-              color: createType === 'post' ? 'white' : getColors(colorScheme).text 
-            }]}>
-              Post
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.createTypeButton, { 
-              backgroundColor: 'transparent',
-              borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
-            }]}
-            onPress={() => {
-              const { router } = require('expo-router');
-              router.push('/create-match');
-              setShowCreateModal(false);
-            }}
-          >
-            <Text style={[styles.createTypeIcon, { 
+            <Text style={[styles.modalTitle, { 
               color: getColors(colorScheme).text 
             }]}>
-              🏏
+              Create Content
             </Text>
-            <Text style={[styles.createTypeLabel, { 
-              color: getColors(colorScheme).text 
-            }]}>
-              Match
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.closeButton}
+              onPress={() => setShowCreateModal(false)}
+            >
+              <Text style={styles.closeButtonText}>✕</Text>
+            </TouchableOpacity>
+          </View>
 
-        </View>
-
-        <ScrollView style={styles.modalContent}>
-          {createType === 'post' && (
-            <View style={styles.createForm}>
-              <Text style={[styles.formLabel, { 
-                color: getColors(colorScheme).text 
-              }]}>
-                What's on your mind?
+          <View style={styles.createOptionsContainer}>
+            <TouchableOpacity 
+              style={[styles.createOption, { 
+                backgroundColor: getColors(colorScheme).background,
+                borderColor: getColors(colorScheme).border
+              }]}
+              onPress={() => {
+                router.push('/create-post');
+                setShowCreateModal(false);
+              }}
+            >
+              <View style={[styles.createOptionIcon, { backgroundColor: '#3B82F6' }]}>
+                <Text style={styles.createOptionEmoji}>📝</Text>
+              </View>
+              <View style={styles.createOptionContent}>
+                <Text style={[styles.createOptionTitle, { color: getColors(colorScheme).text }]}>
+                  Create Post
+                </Text>
+                <Text style={[styles.createOptionDescription, { color: getColors(colorScheme).text }]}>
+                  Share your cricket thoughts and updates
+                </Text>
+              </View>
+              <Text style={[styles.createOptionArrow, { color: getColors(colorScheme).text }]}>
+                →
               </Text>
-              <TextInput
-                style={[styles.textInput, { 
-                  color: getColors(colorScheme).text,
-                  backgroundColor: colorScheme === 'dark' ? '#333' : '#f8f9fa',
-                  borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
-                }]}
-                placeholder="Share your cricket thoughts..."
-                placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
-                value={postContent}
-                onChangeText={setPostContent}
-                multiline
-                numberOfLines={4}
-              />
-            </View>
-          )}
+            </TouchableOpacity>
 
-
-        </ScrollView>
-
-        <View style={styles.modalFooter}>
-          <TouchableOpacity 
-            style={[styles.cancelButton, { 
-              backgroundColor: colorScheme === 'dark' ? '#333' : '#f5f5f5',
-              borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
-            }]}
-            onPress={() => setShowCreateModal(false)}
-          >
-            <Text style={[styles.cancelButtonText, { 
-              color: getColors(colorScheme).text 
-            }]}>
-              Cancel
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.createButton, { 
-              backgroundColor: getColors(colorScheme).tint 
-            }]}
-            onPress={handleCreateSubmit}
-          >
-            <Text style={styles.createButtonText}>
-              Create {createType === 'post' ? 'Post' : createType === 'match' ? 'Match' : 'Team'}
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.createOption, { 
+                backgroundColor: getColors(colorScheme).background,
+                borderColor: getColors(colorScheme).border
+              }]}
+              onPress={() => {
+                router.push('/create-match');
+                setShowCreateModal(false);
+              }}
+            >
+              <View style={[styles.createOptionIcon, { backgroundColor: '#10B981' }]}>
+                <Text style={styles.createOptionEmoji}>🏏</Text>
+              </View>
+              <View style={styles.createOptionContent}>
+                <Text style={[styles.createOptionTitle, { color: getColors(colorScheme).text }]}>
+                  Create Match
+                </Text>
+                <Text style={[styles.createOptionDescription, { color: getColors(colorScheme).text }]}>
+                  Organize and schedule cricket matches
+                </Text>
+              </View>
+              <Text style={[styles.createOptionArrow, { color: getColors(colorScheme).text }]}>
+                →
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
@@ -286,8 +239,22 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
   },
-  modalContainer: {
+  modalOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  modalContainer: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -312,76 +279,49 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  createTypeSelector: {
-    flexDirection: 'row',
-    padding: 16,
+  createOptionsContainer: {
+    padding: 20,
     gap: 12,
   },
-  createTypeButton: {
-    flex: 1,
-    maxWidth: 150,
+  createOption: {
     flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  createOptionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
+    marginRight: 12,
   },
-  createTypeIcon: {
-    fontSize: 16,
-    marginRight: 8,
+  createOptionEmoji: {
+    fontSize: 20,
   },
-  createTypeLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  modalContent: {
+  createOptionContent: {
     flex: 1,
-    padding: 16,
   },
-  createForm: {
-    gap: 16,
-  },
-  formLabel: {
+  createOptionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 2,
   },
-  textInput: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    minHeight: 48,
+  createOptionDescription: {
+    fontSize: 12,
+    opacity: 0.7,
+    lineHeight: 16,
   },
-  modalFooter: {
-    flexDirection: 'row',
-    gap: 12,
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-  },
-  cancelButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  createButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  createButtonText: {
-    color: 'white',
-    fontSize: 16,
+  createOptionArrow: {
+    fontSize: 20,
     fontWeight: 'bold',
+    marginLeft: 8,
   },
 });

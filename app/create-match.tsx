@@ -11,8 +11,6 @@ import {
     TouchableOpacity, useColorScheme, View
 } from 'react-native';
 
-// Import existing components
-import { InstagramBottomNav } from '@/components/ui/InstagramBottomNav';
 
 interface CreateMatchFormData {
   // Step 1: Match Details
@@ -187,21 +185,6 @@ export default function CreateMatchScreen() {
     </View>
   );
 
-  const renderBottomNavigation = () => (
-    <InstagramBottomNav 
-      activeSection="create"
-      onSectionChange={(section) => {
-        if (section === 'home') router.push('/home');
-        else if (section === 'search') console.log('Navigate to search');
-        else if (section === 'create') console.log('Already on create');
-        else if (section === 'jobs') console.log('Navigate to jobs');
-        else if (section === 'profile') router.push('/profile');
-      }}
-      onCreatePost={() => console.log('Create post')}
-      onCreateMatch={() => console.log('Already creating match')}
-      onCreateTeam={() => console.log('Create team')}
-    />
-  );
 
   const renderProgressBar = () => (
     <View style={[styles.progressBarContainer, { backgroundColor: getColors(colorScheme).card }]}>
@@ -620,7 +603,6 @@ export default function CreateMatchScreen() {
         {renderStepContent()}
         {renderNavigationFooter()}
       </ScrollView>
-      {renderBottomNavigation()}
     </SafeAreaView>
   );
 }

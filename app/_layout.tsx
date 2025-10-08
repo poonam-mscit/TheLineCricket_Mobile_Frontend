@@ -60,6 +60,7 @@ function RootLayoutNav() {
         <Stack.Screen name="home" options={{ headerShown: false }} />
         <Stack.Screen name="profile" options={{ headerShown: false }} />
         <Stack.Screen name="create-match" options={{ headerShown: false }} />
+        <Stack.Screen name="create-post" options={{ headerShown: false }} />
         <Stack.Screen name="signup" options={{ headerShown: false }} />
         <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
         <Stack.Screen name="messages" options={{ headerShown: false }} />
