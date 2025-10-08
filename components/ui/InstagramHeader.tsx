@@ -1,8 +1,12 @@
 import { Text } from '@/components/Themed';
-import { useColorScheme } from 'react-native';
 import { getColors } from '@/constants/Colors';
 import React, { useState } from 'react';
-import { Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+    Alert,
+    Dimensions, Image, Modal,
+    ScrollView,
+    StyleSheet, TextInput, TouchableOpacity, useColorScheme, View
+} from 'react-native';
 
 interface Notification {
   id: string;
@@ -40,22 +44,36 @@ interface InstagramHeaderProps {
   onMessagePress?: (message: Message) => void;
   onViewAllNotifications?: () => void;
   onViewAllMessages?: () => void;
+  onSearchPress?: () => void;
+  onProfilePress?: () => void;
+  user?: {
+    id: string;
+    name: string;
+    avatar?: string;
+    verified?: boolean;
+  };
 }
 
 export function InstagramHeader({ 
   onNotificationPress, 
   onMessagePress, 
   onViewAllNotifications, 
-  onViewAllMessages 
+  onViewAllMessages,
+  onSearchPress,
+  onProfilePress,
+  user
 }: InstagramHeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [unreadNotifications, setUnreadNotifications] = useState(3);
   const [unreadMessages, setUnreadMessages] = useState(2);
   
   const colorScheme = useColorScheme();
+  const { width } = Dimensions.get('window');
 
-  // Sample notifications data
+  // Enhanced notifications data
   const [notifications] = useState<Notification[]>([
     {
       id: '1',
@@ -67,7 +85,7 @@ export function InstagramHeader({
       user: {
         id: '1',
         name: 'John Doe',
-        avatar: undefined
+        avatar: 'https://via.placeholder.com/40'
       }
     },
     {
@@ -80,7 +98,7 @@ export function InstagramHeader({
       user: {
         id: '2',
         name: 'Sarah Smith',
-        avatar: undefined
+        avatar: 'https://via.placeholder.com/40'
       }
     },
     {
@@ -93,7 +111,7 @@ export function InstagramHeader({
       user: {
         id: '3',
         name: 'Mike Johnson',
-        avatar: undefined
+        avatar: 'https://via.placeholder.com/40'
       }
     },
     {
@@ -106,6 +124,19 @@ export function InstagramHeader({
       action: {
         type: 'match',
         data: { matchId: 'match_123' }
+      }
+    },
+    {
+      id: '5',
+      type: 'team',
+      title: 'Team Invitation',
+      message: 'You have been invited to join Team Warriors',
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      isRead: false,
+      user: {
+        id: '4',
+        name: 'Team Warriors',
+        avatar: 'https://via.placeholder.com/40'
       }
     }
   ]);
@@ -164,6 +195,50 @@ export function InstagramHeader({
     }
     onMessagePress?.(message);
     setShowMessages(false);
+  };
+
+  const handleNotificationIconPress = () => {
+    setShowNotifications(true);
+  };
+
+  const handleMessageIconPress = () => {
+    setShowMessages(true);
+  };
+
+  const handleSearchPress = () => {
+    setShowSearch(true);
+    onSearchPress?.();
+  };
+
+  const handleProfilePress = () => {
+    onProfilePress?.();
+  };
+
+  const handleSearchSubmit = () => {
+    if (searchQuery.trim()) {
+      Alert.alert('Search', `Searching for: ${searchQuery}`);
+      setShowSearch(false);
+      setSearchQuery('');
+    }
+  };
+
+  const handleMarkAllAsRead = () => {
+    setUnreadNotifications(0);
+    Alert.alert('Success', 'All notifications marked as read');
+  };
+
+  const handleClearAllNotifications = () => {
+    Alert.alert(
+      'Clear All',
+      'Are you sure you want to clear all notifications?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Clear', style: 'destructive', onPress: () => {
+          setUnreadNotifications(0);
+          Alert.alert('Success', 'All notifications cleared');
+        }}
+      ]
+    );
   };
 
   const getNotificationIcon = (type: string) => {
@@ -292,9 +367,18 @@ export function InstagramHeader({
       </View>
       
       <View style={styles.headerRight}>
+        {/* Search Button */}
         <TouchableOpacity 
           style={styles.headerButton}
-          onPress={() => setShowNotifications(true)}
+          onPress={handleSearchPress}
+        >
+          <Text style={styles.headerButtonText}>🔍</Text>
+        </TouchableOpacity>
+
+        {/* Notifications Button */}
+        <TouchableOpacity 
+          style={styles.headerButton}
+          onPress={handleNotificationIconPress}
         >
           <Text style={styles.headerButtonText}>🔔</Text>
           {unreadNotifications > 0 && (
@@ -308,9 +392,10 @@ export function InstagramHeader({
           )}
         </TouchableOpacity>
         
+        {/* Messages Button */}
         <TouchableOpacity 
           style={styles.headerButton}
-          onPress={() => setShowMessages(true)}
+          onPress={handleMessageIconPress}
         >
           <Text style={styles.headerButtonText}>💬</Text>
           {unreadMessages > 0 && (
@@ -320,6 +405,29 @@ export function InstagramHeader({
               <Text style={styles.badgeText}>
                 {unreadMessages}
               </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        {/* Profile Button */}
+        <TouchableOpacity 
+          style={styles.profileButton}
+          onPress={handleProfilePress}
+        >
+          {user?.avatar ? (
+            <Image source={{ uri: user.avatar }} style={styles.profileAvatar} />
+          ) : (
+            <View style={[styles.profileAvatar, { 
+              backgroundColor: getColors(colorScheme).tint 
+            }]}>
+              <Text style={styles.profileAvatarText}>
+                {user?.name?.charAt(0) || 'U'}
+              </Text>
+            </View>
+          )}
+          {user?.verified && (
+            <View style={styles.verifiedBadge}>
+              <Text style={styles.verifiedText}>✓</Text>
             </View>
           )}
         </TouchableOpacity>
@@ -342,33 +450,74 @@ export function InstagramHeader({
             <Text style={[styles.modalTitle, { 
               color: getColors(colorScheme).text 
             }]}>
-              Notifications
+              Notifications ({unreadNotifications} unread)
             </Text>
-            <TouchableOpacity 
-              style={styles.closeButton}
-              onPress={() => setShowNotifications(false)}
-            >
-              <Text style={styles.closeButtonText}>✕</Text>
-            </TouchableOpacity>
+            <View style={styles.modalHeaderActions}>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={handleMarkAllAsRead}
+              >
+                <Text style={[styles.actionButtonText, { 
+                  color: getColors(colorScheme).tint 
+                }]}>
+                  Mark All Read
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={handleClearAllNotifications}
+              >
+                <Text style={[styles.actionButtonText, { 
+                  color: '#ff4757' 
+                }]}>
+                  Clear All
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.closeButton}
+                onPress={() => setShowNotifications(false)}
+              >
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </View>
           </View>
           
           <ScrollView style={styles.modalContent}>
             {notifications.map(renderNotificationItem)}
           </ScrollView>
           
-          <TouchableOpacity 
-            style={[styles.viewAllButton, { 
-              backgroundColor: getColors(colorScheme).tint 
-            }]}
-            onPress={() => {
-              setShowNotifications(false);
-              onViewAllNotifications?.();
-            }}
-          >
-            <Text style={styles.viewAllButtonText}>
-              View All Notifications
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.modalActions}>
+            <TouchableOpacity 
+              style={[styles.viewAllButton, { 
+                backgroundColor: getColors(colorScheme).tint 
+              }]}
+              onPress={() => {
+                setShowNotifications(false);
+                onViewAllNotifications?.();
+              }}
+            >
+              <Text style={styles.viewAllButtonText}>
+                View All Notifications
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.navigateButton, { 
+                backgroundColor: getColors(colorScheme).card,
+                borderColor: getColors(colorScheme).border
+              }]}
+              onPress={() => {
+                setShowNotifications(false);
+                onViewAllNotifications?.();
+              }}
+            >
+              <Text style={[styles.navigateButtonText, { 
+                color: getColors(colorScheme).text 
+              }]}>
+                📱 Open Notifications Screen
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
 
@@ -403,19 +552,118 @@ export function InstagramHeader({
             {messages.map(renderMessageItem)}
           </ScrollView>
           
-          <TouchableOpacity 
-            style={[styles.viewAllButton, { 
-              backgroundColor: getColors(colorScheme).tint 
-            }]}
-            onPress={() => {
-              setShowMessages(false);
-              onViewAllMessages?.();
-            }}
-          >
-            <Text style={styles.viewAllButtonText}>
-              View All Messages
+          <View style={styles.modalActions}>
+            <TouchableOpacity 
+              style={[styles.viewAllButton, { 
+                backgroundColor: getColors(colorScheme).tint 
+              }]}
+              onPress={() => {
+                setShowMessages(false);
+                onViewAllMessages?.();
+              }}
+            >
+              <Text style={styles.viewAllButtonText}>
+                View All Messages
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.navigateButton, { 
+                backgroundColor: getColors(colorScheme).card,
+                borderColor: getColors(colorScheme).border
+              }]}
+              onPress={() => {
+                setShowMessages(false);
+                onViewAllMessages?.();
+              }}
+            >
+              <Text style={[styles.navigateButtonText, { 
+                color: getColors(colorScheme).text 
+              }]}>
+                💬 Open Messages Screen
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Search Modal */}
+      <Modal
+        visible={showSearch}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowSearch(false)}
+      >
+        <View style={[styles.modalContainer, { 
+          backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#ffffff'
+        }]}>
+          <View style={[styles.modalHeader, { 
+            backgroundColor: colorScheme === 'dark' ? '#2c2c2c' : '#f8f9fa',
+            borderBottomColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
+          }]}>
+            <Text style={[styles.modalTitle, { 
+              color: getColors(colorScheme).text 
+            }]}>
+              Search
             </Text>
-          </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.closeButton}
+              onPress={() => setShowSearch(false)}
+            >
+              <Text style={styles.closeButtonText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={[styles.searchInput, { 
+                backgroundColor: getColors(colorScheme).card,
+                color: getColors(colorScheme).text,
+                borderColor: getColors(colorScheme).border
+              }]}
+              placeholder="Search players, matches, posts..."
+              placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmitEditing={handleSearchSubmit}
+              autoFocus
+            />
+            <TouchableOpacity 
+              style={[styles.searchButton, { 
+                backgroundColor: getColors(colorScheme).tint 
+              }]}
+              onPress={handleSearchSubmit}
+            >
+              <Text style={styles.searchButtonText}>Search</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalContent}>
+            <Text style={[styles.searchSuggestions, { 
+              color: getColors(colorScheme).text 
+            }]}>
+              Popular Searches:
+            </Text>
+            {['Virat Kohli', 'Mumbai Indians', 'T20 World Cup', 'Cricket Academy', 'Live Matches'].map((suggestion, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[styles.suggestionItem, { 
+                  backgroundColor: getColors(colorScheme).card,
+                  borderColor: getColors(colorScheme).border
+                }]}
+                onPress={() => {
+                  setSearchQuery(suggestion);
+                  handleSearchSubmit();
+                }}
+              >
+                <Text style={[styles.suggestionText, { 
+                  color: getColors(colorScheme).text 
+                }]}>
+                  {suggestion}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
       </Modal>
     </View>
@@ -500,6 +748,114 @@ const styles = StyleSheet.create({
   closeButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  modalHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 8,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  actionButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  profileButton: {
+    position: 'relative',
+    marginLeft: 8,
+  },
+  profileAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileAvatarText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  verifiedBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#1DA1F2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'white',
+  },
+  verifiedText: {
+    color: 'white',
+    fontSize: 8,
+    fontWeight: 'bold',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    padding: 16,
+    alignItems: 'center',
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    marginRight: 12,
+    fontSize: 16,
+  },
+  searchButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  searchButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  searchSuggestions: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    marginTop: 8,
+  },
+  suggestionItem: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  suggestionText: {
+    fontSize: 14,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  navigateButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginLeft: 8,
+    alignItems: 'center',
+  },
+  navigateButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   modalContent: {
     flex: 1,

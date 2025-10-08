@@ -2,7 +2,18 @@ import { Text } from '@/components/Themed';
 import { getColors } from '@/constants/Colors';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, FlatList, StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native';
+import {
+    Alert,
+    Dimensions,
+    FlatList,
+    Image,
+    RefreshControl,
+    SafeAreaView,
+    StyleSheet,
+    TouchableOpacity,
+    useColorScheme,
+    View
+} from 'react-native';
 
 interface Notification {
   id: string;
@@ -30,9 +41,13 @@ interface Notification {
 export default function NotificationsScreen() {
   const [filter, setFilter] = useState<'all' | 'unread' | 'match' | 'team' | 'message' | 'achievement' | 'system' | 'reminder'>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'priority'>('newest');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const colorScheme = useColorScheme();
+  const { width } = Dimensions.get('window');
 
-  // Sample notifications data
+  // Enhanced notifications data
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: '1',
@@ -43,6 +58,11 @@ export default function NotificationsScreen() {
       isRead: false,
       timestamp: new Date(Date.now() - 5 * 60 * 1000),
       actionText: 'View Match',
+      sender: {
+        id: '1',
+        name: 'Cricket Team Alpha',
+        avatar: 'https://via.placeholder.com/40'
+      },
       relatedData: { matchId: 'match_123' }
     },
     {
@@ -54,6 +74,11 @@ export default function NotificationsScreen() {
       isRead: false,
       timestamp: new Date(Date.now() - 15 * 60 * 1000),
       actionText: 'View Team',
+      sender: {
+        id: '2',
+        name: 'Team Manager',
+        avatar: 'https://via.placeholder.com/40'
+      },
       relatedData: { teamId: 'team_456' }
     },
     {
@@ -65,6 +90,11 @@ export default function NotificationsScreen() {
       isRead: false,
       timestamp: new Date(Date.now() - 30 * 60 * 1000),
       actionText: 'View Message',
+      sender: {
+        id: '3',
+        name: 'Coach Johnson',
+        avatar: 'https://via.placeholder.com/40'
+      },
       relatedData: { messageId: 'msg_789' }
     },
     {
@@ -97,6 +127,33 @@ export default function NotificationsScreen() {
       timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
       actionText: 'Join Match',
       relatedData: { matchId: 'match_456' }
+    },
+    {
+      id: '7',
+      title: 'New Follower',
+      message: 'John Doe started following you',
+      type: 'message',
+      priority: 'low',
+      isRead: false,
+      timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000),
+      actionText: 'View Profile',
+      sender: {
+        id: '4',
+        name: 'John Doe',
+        avatar: 'https://via.placeholder.com/40'
+      },
+      relatedData: { messageId: 'msg_101' }
+    },
+    {
+      id: '8',
+      title: 'Match Result',
+      message: 'Your match against Team Beta has ended. You won!',
+      type: 'match',
+      priority: 'high',
+      isRead: true,
+      timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000),
+      actionText: 'View Results',
+      relatedData: { matchId: 'match_789' }
     }
   ]);
 
@@ -190,6 +247,13 @@ export default function NotificationsScreen() {
     }
   };
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsRefreshing(false);
+  };
+
   const handleMarkAllAsRead = () => {
     if (unreadCount > 0) {
       Alert.alert(
@@ -207,6 +271,45 @@ export default function NotificationsScreen() {
     }
   };
 
+  const handleClearAllNotifications = () => {
+    Alert.alert(
+      'Clear All Notifications',
+      'Are you sure you want to clear all notifications? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Clear All', style: 'destructive', onPress: () => {
+          setNotifications([]);
+        }}
+      ]
+    );
+  };
+
+  const handleDeleteNotification = (notificationId: string) => {
+    Alert.alert(
+      'Delete Notification',
+      'Are you sure you want to delete this notification?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => {
+          setNotifications(prev => prev.filter(n => n.id !== notificationId));
+        }}
+      ]
+    );
+  };
+
+  const handleNotificationSettings = () => {
+    setShowSettings(true);
+  };
+
+  const handleFilterChange = (newFilter: typeof filter) => {
+    setFilter(newFilter);
+    setShowFilters(false);
+  };
+
+  const handleSortChange = (newSort: typeof sortBy) => {
+    setSortBy(newSort);
+  };
+
   const handleClearAll = () => {
     if (notifications.length > 0) {
       Alert.alert(
@@ -220,10 +323,6 @@ export default function NotificationsScreen() {
         ]
       );
     }
-  };
-
-  const handleDeleteNotification = (notificationId: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== notificationId));
   };
 
   const filterOptions = [
@@ -251,16 +350,36 @@ export default function NotificationsScreen() {
           backgroundColor: item.isRead 
             ? (colorScheme === 'dark' ? '#1a1a1a' : '#ffffff')
             : (colorScheme === 'dark' ? '#2a2a2a' : '#f8f9fa'),
-          borderColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
+          borderColor: colorScheme === 'dark' ? '#333' : '#e0e0e0',
+          borderLeftColor: getPriorityColor(item.priority),
+          borderLeftWidth: 4
         }
       ]}
       onPress={() => handleNotificationPress(item)}
     >
       <View style={styles.notificationHeader}>
-        <View style={styles.notificationIcon}>
-          <Text style={styles.iconText}>
-            {getNotificationIcon(item.type)}
-          </Text>
+        <View style={styles.notificationLeft}>
+          <View style={styles.notificationIcon}>
+            <Text style={styles.iconText}>
+              {getNotificationIcon(item.type)}
+            </Text>
+          </View>
+          
+          {item.sender && (
+            <View style={styles.senderInfo}>
+              {item.sender.avatar ? (
+                <Image source={{ uri: item.sender.avatar }} style={styles.senderAvatar} />
+              ) : (
+                <View style={[styles.senderAvatar, { 
+                  backgroundColor: getColors(colorScheme).tint 
+                }]}>
+                  <Text style={styles.senderAvatarText}>
+                    {item.sender.name.charAt(0)}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
         </View>
         
         <View style={styles.notificationContent}>
@@ -271,7 +390,9 @@ export default function NotificationsScreen() {
               {item.title}
             </Text>
             {!item.isRead && (
-              <View style={styles.unreadDot} />
+              <View style={[styles.unreadDot, { 
+                backgroundColor: getColors(colorScheme).tint 
+              }]} />
             )}
           </View>
           
@@ -328,7 +449,7 @@ export default function NotificationsScreen() {
   );
 
   return (
-    <View style={[styles.container, { 
+    <SafeAreaView style={[styles.container, { 
       backgroundColor: getColors(colorScheme).background
     }]}>
       {/* Header */}
@@ -345,15 +466,29 @@ export default function NotificationsScreen() {
         <Text style={[styles.headerTitle, { 
           color: getColors(colorScheme).text 
         }]}>
-          Notifications
+          Notifications ({unreadCount})
         </Text>
-        <TouchableOpacity style={styles.settingsButton}>
-          <Text style={styles.settingsButtonText}>⚙️</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={styles.filterToggleButton}
+            onPress={() => setShowFilters(!showFilters)}
+          >
+            <Text style={styles.filterToggleButtonText}>🔍</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.settingsButton}
+            onPress={handleNotificationSettings}
+          >
+            <Text style={styles.settingsButtonText}>⚙️</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Stats */}
-      <View style={styles.statsContainer}>
+      <View style={[styles.statsContainer, { 
+        backgroundColor: getColors(colorScheme).card,
+        borderBottomColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
+      }]}>
         <View style={styles.statItem}>
           <Text style={[styles.statNumber, { 
             color: getColors(colorScheme).text 
@@ -390,101 +525,116 @@ export default function NotificationsScreen() {
             Matches
           </Text>
         </View>
-      </View>
-
-      {/* Filters */}
-      <View style={styles.filtersContainer}>
-        {filterOptions.map((option) => (
-          <TouchableOpacity
-            key={option.key}
-            style={[
-              styles.filterButton,
-              { 
-                backgroundColor: filter === option.key 
-                  ? getColors(colorScheme).tint 
-                  : colorScheme === 'dark' ? '#333' : '#f5f5f5',
-                borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
-              }
-            ]}
-            onPress={() => setFilter(option.key as any)}
-          >
-            <Text style={[
-              styles.filterButtonText,
-              { 
-                color: filter === option.key ? 'white' : getColors(colorScheme).text 
-              }
-            ]}>
-              {option.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Sort Options */}
-      <View style={styles.sortContainer}>
-        <Text style={[styles.sortLabel, { 
-          color: getColors(colorScheme).text 
-        }]}>
-          Sort by:
-        </Text>
-        <View style={styles.sortOptions}>
-          {sortOptions.map((option) => (
-            <TouchableOpacity
-              key={option.key}
-              style={[
-                styles.sortButton,
-                { 
-                  backgroundColor: sortBy === option.key 
-                    ? getColors(colorScheme).tint 
-                    : colorScheme === 'dark' ? '#333' : '#f5f5f5',
-                  borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
-                }
-              ]}
-              onPress={() => setSortBy(option.key as any)}
-            >
-              <Text style={[
-                styles.sortButtonText,
-                { 
-                  color: sortBy === option.key ? 'white' : getColors(colorScheme).text 
-                }
-              ]}>
-                {option.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        
+        <View style={styles.statItem}>
+          <Text style={[styles.statNumber, { 
+            color: getColors(colorScheme).text 
+          }]}>
+            {notifications.filter(n => n.priority === 'urgent').length}
+          </Text>
+          <Text style={[styles.statLabel, { 
+            color: getColors(colorScheme).text 
+          }]}>
+            Urgent
+          </Text>
         </View>
       </View>
 
       {/* Action Buttons */}
-      <View style={styles.actionButtonsContainer}>
+      <View style={[styles.actionButtonsContainer, { 
+        backgroundColor: getColors(colorScheme).card,
+        borderBottomColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
+      }]}>
         <TouchableOpacity 
           style={[styles.actionButton, { 
-            backgroundColor: getColors(colorScheme).card,
-            borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
+            backgroundColor: getColors(colorScheme).tint 
           }]}
           onPress={handleMarkAllAsRead}
-          disabled={unreadCount === 0}
         >
-          <Text style={[styles.actionButtonText, { 
-            color: getColors(colorScheme).text 
-          }]}>
-            Mark All Read
-          </Text>
+          <Text style={styles.actionButtonText}>Mark All Read</Text>
         </TouchableOpacity>
-
+        
         <TouchableOpacity 
           style={[styles.actionButton, { 
-            backgroundColor: getColors(colorScheme).error,
-            borderColor: '#ff4757'
+            backgroundColor: '#ff4757' 
           }]}
-          onPress={handleClearAll}
-          disabled={notifications.length === 0}
+          onPress={handleClearAllNotifications}
         >
-          <Text style={[styles.actionButtonText, { color: 'white' }]}>
-            Clear All
-          </Text>
+          <Text style={styles.actionButtonText}>Clear All</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Enhanced Filters */}
+      {showFilters && (
+        <View style={[styles.filtersContainer, { 
+          backgroundColor: getColors(colorScheme).card,
+          borderBottomColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
+        }]}>
+          <Text style={[styles.filtersTitle, { 
+            color: getColors(colorScheme).text 
+          }]}>
+            Filter by Type:
+          </Text>
+          <View style={styles.filterButtonsRow}>
+            {filterOptions.map((option) => (
+              <TouchableOpacity
+                key={option.key}
+                style={[
+                  styles.filterButton,
+                  { 
+                    backgroundColor: filter === option.key 
+                      ? getColors(colorScheme).tint 
+                      : colorScheme === 'dark' ? '#333' : '#f5f5f5',
+                    borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
+                  }
+                ]}
+                onPress={() => handleFilterChange(option.key as any)}
+              >
+                <Text style={[
+                  styles.filterButtonText,
+                  { 
+                    color: filter === option.key ? 'white' : getColors(colorScheme).text 
+                  }
+                ]}>
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          
+          <Text style={[styles.filtersTitle, { 
+            color: getColors(colorScheme).text 
+          }]}>
+            Sort by:
+          </Text>
+          <View style={styles.sortButtonsRow}>
+            {sortOptions.map((option) => (
+              <TouchableOpacity
+                key={option.key}
+                style={[
+                  styles.sortButton,
+                  { 
+                    backgroundColor: sortBy === option.key 
+                      ? getColors(colorScheme).tint 
+                      : colorScheme === 'dark' ? '#333' : '#f5f5f5',
+                    borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
+                  }
+                ]}
+                onPress={() => handleSortChange(option.key as any)}
+              >
+                <Text style={[
+                  styles.sortButtonText,
+                  { 
+                    color: sortBy === option.key ? 'white' : getColors(colorScheme).text 
+                  }
+                ]}>
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      )}
 
       {/* Notifications List */}
       <FlatList
@@ -493,17 +643,34 @@ export default function NotificationsScreen() {
         keyExtractor={(item) => item.id}
         style={styles.notificationsList}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            colors={[getColors(colorScheme).tint]}
+            tintColor={getColors(colorScheme).tint}
+          />
+        }
+        contentContainerStyle={styles.notificationsListContent}
         ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text style={[styles.emptyText, { 
+          <View style={styles.emptyContainer}>
+            <Text style={[styles.emptyTitle, { 
               color: getColors(colorScheme).text 
             }]}>
-              {filter === 'all' ? 'No notifications yet' : `No ${filter} notifications`}
+              No notifications found
+            </Text>
+            <Text style={[styles.emptyMessage, { 
+              color: getColors(colorScheme).text 
+            }]}>
+              {filter === 'all' 
+                ? 'You have no notifications yet' 
+                : `No ${filter} notifications found`
+              }
             </Text>
           </View>
         }
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -721,5 +888,123 @@ const styles = StyleSheet.create({
     fontSize: 16,
     opacity: 0.6,
     textAlign: 'center',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  filterToggleButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  filterToggleButtonText: {
+    fontSize: 16,
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginHorizontal: 4,
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  filtersContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  filtersTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  filterButtonsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 12,
+  },
+  filterButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginRight: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+  },
+  filterButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  sortButtonsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  sortButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginRight: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+  },
+  sortButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  notificationsList: {
+    flex: 1,
+  },
+  notificationsListContent: {
+    paddingVertical: 8,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  emptyMessage: {
+    fontSize: 14,
+    opacity: 0.6,
+    textAlign: 'center',
+  },
+  notificationLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  senderInfo: {
+    marginLeft: 8,
+  },
+  senderAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  senderAvatarText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
 });

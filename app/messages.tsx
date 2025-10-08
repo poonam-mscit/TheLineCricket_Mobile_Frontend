@@ -1,8 +1,20 @@
 import { Text } from '@/components/Themed';
 import { getColors } from '@/constants/Colors';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
-import { FlatList, StyleSheet, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+    Alert,
+    Animated,
+    Dimensions,
+    FlatList,
+    Image,
+    SafeAreaView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    useColorScheme,
+    View
+} from 'react-native';
 
 interface Message {
   id: string;
@@ -11,10 +23,12 @@ interface Message {
     name: string;
     avatar?: string;
     isOnline: boolean;
+    verified?: boolean;
   };
   lastMessage: string;
   timestamp: Date;
   unreadCount: number;
+  isTyping?: boolean;
 }
 
 interface ChatMessage {
@@ -25,68 +39,100 @@ interface ChatMessage {
   timestamp: Date;
   isRead: boolean;
   isFromCurrentUser: boolean;
+  messageType?: 'text' | 'image' | 'file';
+  imageUrl?: string;
+  fileUrl?: string;
+  fileName?: string;
 }
 
 export default function MessagesScreen() {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const colorScheme = useColorScheme();
+  const flatListRef = useRef<FlatList>(null);
+  const typingAnimation = useRef(new Animated.Value(0)).current;
+  const { width, height } = Dimensions.get('window');
 
-  // Sample messages data
-  const [messages] = useState<Message[]>([
+  // Enhanced messages data
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       user: {
         id: '1',
         name: 'Cricket Team Alpha',
-        avatar: undefined,
-        isOnline: true
+        avatar: 'https://via.placeholder.com/40',
+        isOnline: true,
+        verified: true
       },
       lastMessage: 'Hey! Are you ready for tomorrow\'s match?',
       timestamp: new Date(Date.now() - 10 * 60 * 1000),
-      unreadCount: 2
+      unreadCount: 2,
+      isTyping: false
     },
     {
       id: '2',
       user: {
         id: '2',
         name: 'Coach Johnson',
-        avatar: undefined,
-        isOnline: false
+        avatar: 'https://via.placeholder.com/40',
+        isOnline: false,
+        verified: true
       },
       lastMessage: 'Great practice session today!',
       timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      unreadCount: 0
+      unreadCount: 0,
+      isTyping: false
     },
     {
       id: '3',
       user: {
         id: '3',
         name: 'Team Manager',
-        avatar: undefined,
-        isOnline: true
+        avatar: 'https://via.placeholder.com/40',
+        isOnline: true,
+        verified: false
       },
       lastMessage: 'Don\'t forget about the team meeting',
       timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-      unreadCount: 1
+      unreadCount: 1,
+      isTyping: true
     },
     {
       id: '4',
       user: {
         id: '4',
         name: 'Match Organizer',
-        avatar: undefined,
-        isOnline: false
+        avatar: 'https://via.placeholder.com/40',
+        isOnline: false,
+        verified: true
       },
       lastMessage: 'Your match is confirmed for this weekend',
       timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
-      unreadCount: 0
+      unreadCount: 0,
+      isTyping: false
+    },
+    {
+      id: '5',
+      user: {
+        id: '5',
+        name: 'Cricket Academy',
+        avatar: 'https://via.placeholder.com/40',
+        isOnline: true,
+        verified: true
+      },
+      lastMessage: 'New training session available!',
+      timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000),
+      unreadCount: 3,
+      isTyping: false
     }
   ]);
 
-  // Sample chat messages for selected chat
-  const [chatMessages] = useState<ChatMessage[]>([
+  // Enhanced chat messages for selected chat
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
       id: '1',
       userId: '1',
@@ -94,7 +140,8 @@ export default function MessagesScreen() {
       message: 'Hey! Are you ready for tomorrow\'s match?',
       timestamp: new Date(Date.now() - 10 * 60 * 1000),
       isRead: false,
-      isFromCurrentUser: false
+      isFromCurrentUser: false,
+      messageType: 'text'
     },
     {
       id: '2',
@@ -103,7 +150,8 @@ export default function MessagesScreen() {
       message: 'Yes, I\'m all set! What time should we meet?',
       timestamp: new Date(Date.now() - 8 * 60 * 1000),
       isRead: true,
-      isFromCurrentUser: true
+      isFromCurrentUser: true,
+      messageType: 'text'
     },
     {
       id: '3',
@@ -112,7 +160,29 @@ export default function MessagesScreen() {
       message: 'Great! Let\'s meet at 9 AM at the ground',
       timestamp: new Date(Date.now() - 5 * 60 * 1000),
       isRead: false,
-      isFromCurrentUser: false
+      isFromCurrentUser: false,
+      messageType: 'text'
+    },
+    {
+      id: '4',
+      userId: '1',
+      username: 'Cricket Team Alpha',
+      message: 'Here\'s the match schedule',
+      timestamp: new Date(Date.now() - 3 * 60 * 1000),
+      isRead: false,
+      isFromCurrentUser: false,
+      messageType: 'image',
+      imageUrl: 'https://via.placeholder.com/300x200'
+    },
+    {
+      id: '5',
+      userId: 'current',
+      username: 'You',
+      message: 'Perfect! See you tomorrow',
+      timestamp: new Date(Date.now() - 1 * 60 * 1000),
+      isRead: true,
+      isFromCurrentUser: true,
+      messageType: 'text'
     }
   ]);
 
@@ -123,19 +193,101 @@ export default function MessagesScreen() {
 
   const handleMessagePress = (message: Message) => {
     setSelectedChat(message.id);
+    // Mark messages as read when opening chat
+    setMessages(prev => prev.map(msg => 
+      msg.id === message.id ? { ...msg, unreadCount: 0 } : msg
+    ));
   };
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
-      // In a real app, this would send the message to the backend
-      console.log('Sending message:', newMessage);
+      const newChatMessage: ChatMessage = {
+        id: Date.now().toString(),
+        userId: 'current',
+        username: 'You',
+        message: newMessage.trim(),
+        timestamp: new Date(),
+        isRead: true,
+        isFromCurrentUser: true,
+        messageType: 'text'
+      };
+      
+      setChatMessages(prev => [...prev, newChatMessage]);
       setNewMessage('');
+      
+      // Simulate typing indicator
+      setIsTyping(true);
+      setTimeout(() => {
+        setIsTyping(false);
+        // Simulate response
+        const response: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          userId: selectedChat || '1',
+          username: 'Cricket Team Alpha',
+          message: 'Thanks for the message!',
+          timestamp: new Date(),
+          isRead: false,
+          isFromCurrentUser: false,
+          messageType: 'text'
+        };
+        setChatMessages(prev => [...prev, response]);
+      }, 2000);
     }
   };
 
   const handleBackToMessages = () => {
     setSelectedChat(null);
   };
+
+  const handleSearchToggle = () => {
+    setShowSearch(!showSearch);
+    if (showSearch) {
+      setSearchQuery('');
+    }
+  };
+
+  const handleTypingStart = () => {
+    setIsTyping(true);
+  };
+
+  const handleTypingEnd = () => {
+    setIsTyping(false);
+  };
+
+  const handleMessageLongPress = (message: ChatMessage) => {
+    Alert.alert(
+      'Message Options',
+      'What would you like to do?',
+      [
+        { text: 'Copy', onPress: () => console.log('Copy message') },
+        { text: 'Reply', onPress: () => console.log('Reply to message') },
+        { text: 'Delete', onPress: () => console.log('Delete message'), style: 'destructive' },
+        { text: 'Cancel', style: 'cancel' }
+      ]
+    );
+  };
+
+  // Typing animation effect
+  useEffect(() => {
+    if (isTyping) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(typingAnimation, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(typingAnimation, {
+            toValue: 0,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      typingAnimation.setValue(0);
+    }
+  }, [isTyping]);
 
   const formatTime = (date: Date) => {
     const now = new Date();
@@ -165,50 +317,114 @@ export default function MessagesScreen() {
       onPress={() => handleMessagePress(item)}
     >
       <View style={styles.messageLeft}>
-        <View style={[styles.messageAvatar, { 
-          backgroundColor: item.user.isOnline ? getColors(colorScheme).success : getColors(colorScheme).text
-        }]}>
-          <Text style={styles.messageAvatarText}>
-            {item.user.name.charAt(0)}
-          </Text>
+        <View style={styles.avatarContainer}>
+          {item.user.avatar ? (
+            <Image source={{ uri: item.user.avatar }} style={styles.messageAvatar} />
+          ) : (
+            <View style={[styles.messageAvatar, { 
+              backgroundColor: item.user.isOnline ? getColors(colorScheme).success : getColors(colorScheme).text
+            }]}>
+              <Text style={styles.messageAvatarText}>
+                {item.user.name.charAt(0)}
+              </Text>
+            </View>
+          )}
+          {item.user.isOnline && (
+            <View style={[styles.onlineIndicator, { 
+              backgroundColor: getColors(colorScheme).success 
+            }]} />
+          )}
         </View>
         <View style={styles.messageContent}>
           <View style={styles.messageHeader}>
-            <Text style={[styles.messageName, { 
-              color: getColors(colorScheme).text 
-            }]}>
-              {item.user.name}
-            </Text>
+            <View style={styles.nameContainer}>
+              <Text style={[styles.messageName, { 
+                color: getColors(colorScheme).text 
+              }]}>
+                {item.user.name}
+              </Text>
+              {item.user.verified && (
+                <Text style={styles.verifiedBadge}>✓</Text>
+              )}
+            </View>
             <Text style={[styles.messageTime, { 
               color: getColors(colorScheme).text 
             }]}>
               {formatTime(item.timestamp)}
             </Text>
           </View>
-          <Text style={[styles.messageText, { 
-            color: getColors(colorScheme).text 
-          }]}>
-            {item.lastMessage}
-          </Text>
+          <View style={styles.messagePreview}>
+            {item.isTyping ? (
+              <View style={styles.typingContainer}>
+                <Animated.View style={[
+                  styles.typingDot,
+                  { 
+                    opacity: typingAnimation,
+                    backgroundColor: getColors(colorScheme).tint 
+                  }
+                ]} />
+                <Animated.View style={[
+                  styles.typingDot,
+                  { 
+                    opacity: typingAnimation,
+                    backgroundColor: getColors(colorScheme).tint 
+                  }
+                ]} />
+                <Animated.View style={[
+                  styles.typingDot,
+                  { 
+                    opacity: typingAnimation,
+                    backgroundColor: getColors(colorScheme).tint 
+                  }
+                ]} />
+                <Text style={[styles.typingText, { 
+                  color: getColors(colorScheme).text 
+                }]}>
+                  typing...
+                </Text>
+              </View>
+            ) : (
+              <Text style={[styles.messageText, { 
+                color: getColors(colorScheme).text 
+              }]}>
+                {item.lastMessage}
+              </Text>
+            )}
+          </View>
         </View>
       </View>
-      {item.unreadCount > 0 && (
-        <View style={[styles.messageBadge, { 
-          backgroundColor: getColors(colorScheme).tint 
-        }]}>
-          <Text style={styles.messageBadgeText}>
-            {item.unreadCount}
+      <View style={styles.messageRight}>
+        {item.unreadCount > 0 && (
+          <View style={[styles.messageBadge, { 
+            backgroundColor: getColors(colorScheme).tint 
+          }]}>
+            <Text style={styles.messageBadgeText}>
+              {item.unreadCount}
+            </Text>
+          </View>
+        )}
+        <TouchableOpacity 
+          style={styles.moreButton}
+          onPress={() => console.log('More options')}
+        >
+          <Text style={[styles.moreButtonText, { 
+            color: getColors(colorScheme).text 
+          }]}>
+            ⋯
           </Text>
-        </View>
-      )}
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
 
   const renderChatMessage = ({ item }: { item: ChatMessage }) => (
-    <View style={[
-      styles.chatMessageContainer,
-      item.isFromCurrentUser ? styles.chatMessageRight : styles.chatMessageLeft
-    ]}>
+    <TouchableOpacity
+      style={[
+        styles.chatMessageContainer,
+        item.isFromCurrentUser ? styles.chatMessageRight : styles.chatMessageLeft
+      ]}
+      onLongPress={() => handleMessageLongPress(item)}
+    >
       <View style={[
         styles.chatMessage,
         { 
@@ -218,28 +434,58 @@ export default function MessagesScreen() {
           borderColor: colorScheme === 'dark' ? '#555' : '#e0e0e0'
         }
       ]}>
-        <Text style={[
-          styles.chatMessageText,
-          { 
-            color: item.isFromCurrentUser 
-              ? 'white' 
-              : getColors(colorScheme).text 
-          }
-        ]}>
-          {item.message}
-        </Text>
-        <Text style={[
-          styles.chatMessageTime,
-          { 
-            color: item.isFromCurrentUser 
-              ? 'rgba(255,255,255,0.7)' 
-              : getColors(colorScheme).text 
-          }
-        ]}>
-          {formatChatTime(item.timestamp)}
-        </Text>
+        {item.messageType === 'image' && item.imageUrl ? (
+          <View style={styles.imageMessageContainer}>
+            <Image source={{ uri: item.imageUrl }} style={styles.imageMessage} />
+            <Text style={[
+              styles.chatMessageText,
+              { 
+                color: item.isFromCurrentUser 
+                  ? 'white' 
+                  : getColors(colorScheme).text 
+              }
+            ]}>
+              {item.message}
+            </Text>
+          </View>
+        ) : (
+          <Text style={[
+            styles.chatMessageText,
+            { 
+              color: item.isFromCurrentUser 
+                ? 'white' 
+                : getColors(colorScheme).text 
+            }
+          ]}>
+            {item.message}
+          </Text>
+        )}
+        <View style={styles.chatMessageFooter}>
+          <Text style={[
+            styles.chatMessageTime,
+            { 
+              color: item.isFromCurrentUser 
+                ? 'rgba(255,255,255,0.7)' 
+                : getColors(colorScheme).text 
+            }
+          ]}>
+            {formatChatTime(item.timestamp)}
+          </Text>
+          {item.isFromCurrentUser && (
+            <Text style={[
+              styles.readStatus,
+              { 
+                color: item.isRead 
+                  ? 'rgba(255,255,255,0.9)' 
+                  : 'rgba(255,255,255,0.5)' 
+              }
+            ]}>
+              {item.isRead ? '✓✓' : '✓'}
+            </Text>
+          )}
+        </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   if (selectedChat) {
@@ -318,7 +564,7 @@ export default function MessagesScreen() {
   }
 
   return (
-    <View style={[styles.container, { 
+    <SafeAreaView style={[styles.container, { 
       backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#ffffff'
     }]}>
       {/* Header */}
@@ -337,27 +583,45 @@ export default function MessagesScreen() {
         }]}>
           Messages
         </Text>
-        <TouchableOpacity style={styles.newMessageButton}>
-          <Text style={styles.newMessageButtonText}>✏️</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={styles.searchButton}
+            onPress={handleSearchToggle}
+          >
+            <Text style={styles.searchButtonText}>🔍</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.newMessageButton}>
+            <Text style={styles.newMessageButtonText}>✏️</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Search Bar */}
-      <View style={[styles.searchContainer, { 
-        backgroundColor: getColors(colorScheme).background
-      }]}>
-        <TextInput
-          style={[styles.searchInput, { 
-            color: getColors(colorScheme).text,
-            backgroundColor: getColors(colorScheme).card,
-            borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
-          }]}
-          placeholder="Search messages..."
-          placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
+      {showSearch && (
+        <View style={[styles.searchContainer, { 
+          backgroundColor: getColors(colorScheme).card,
+          borderBottomColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
+        }]}>
+          <TextInput
+            style={[styles.searchInput, { 
+              color: getColors(colorScheme).text,
+              backgroundColor: getColors(colorScheme).background,
+              borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
+            }]}
+            placeholder="Search messages..."
+            placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+          />
+          <TouchableOpacity 
+            style={styles.clearSearchButton}
+            onPress={() => setSearchQuery('')}
+          >
+            <Text style={styles.clearSearchButtonText}>✕</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Messages List */}
       <FlatList
@@ -366,8 +630,9 @@ export default function MessagesScreen() {
         keyExtractor={(item) => item.id}
         style={styles.messagesList}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.messagesListContent}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -570,5 +835,124 @@ const styles = StyleSheet.create({
   sendButtonText: {
     fontSize: 16,
     color: 'white',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  searchButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  searchButtonText: {
+    fontSize: 16,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  searchInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginRight: 8,
+  },
+  clearSearchButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  clearSearchButtonText: {
+    fontSize: 12,
+    color: '#666',
+  },
+  messagesList: {
+    flex: 1,
+  },
+  messagesListContent: {
+    paddingVertical: 8,
+  },
+  avatarContainer: {
+    position: 'relative',
+  },
+  onlineIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: 'white',
+  },
+  nameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  verifiedBadge: {
+    fontSize: 12,
+    color: '#1DA1F2',
+    marginLeft: 4,
+  },
+  messagePreview: {
+    flex: 1,
+  },
+  typingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  typingDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    marginRight: 2,
+  },
+  typingText: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    marginLeft: 4,
+  },
+  messageRight: {
+    alignItems: 'flex-end',
+  },
+  moreButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  moreButtonText: {
+    fontSize: 16,
+  },
+  imageMessageContainer: {
+    marginBottom: 4,
+  },
+  imageMessage: {
+    width: 200,
+    height: 150,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  chatMessageFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  readStatus: {
+    fontSize: 10,
+    marginLeft: 4,
   },
 });

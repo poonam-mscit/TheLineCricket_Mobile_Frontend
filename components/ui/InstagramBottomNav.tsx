@@ -1,8 +1,7 @@
 import { Text } from '@/components/Themed';
-import { useColorScheme } from 'react-native';
 import { getColors } from '@/constants/Colors';
 import React, { useState } from 'react';
-import { Modal, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native';
 
 interface InstagramBottomNavProps {
   activeSection: string;
@@ -20,21 +19,8 @@ export function InstagramBottomNav({
   onCreateTeam 
 }: InstagramBottomNavProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createType, setCreateType] = useState<'post' | 'match' | 'team'>('post');
+  const [createType, setCreateType] = useState<'post'>('post');
   const [postContent, setPostContent] = useState('');
-  const [matchData, setMatchData] = useState({
-    teamA: '',
-    teamB: '',
-    date: '',
-    location: '',
-    type: 'T20'
-  });
-  const [teamData, setTeamData] = useState({
-    name: '',
-    description: '',
-    location: '',
-    skillLevel: 'Beginner'
-  });
   
   const colorScheme = useColorScheme();
 
@@ -80,12 +66,6 @@ export function InstagramBottomNav({
     if (createType === 'post' && postContent.trim()) {
       onCreatePost?.(postContent);
       setPostContent('');
-    } else if (createType === 'match' && matchData.teamA && matchData.teamB) {
-      onCreateMatch?.(matchData);
-      setMatchData({ teamA: '', teamB: '', date: '', location: '', type: 'T20' });
-    } else if (createType === 'team' && teamData.name) {
-      onCreateTeam?.(teamData);
-      setTeamData({ name: '', description: '', location: '', skillLevel: 'Beginner' });
     }
     setShowCreateModal(false);
   };
@@ -117,7 +97,7 @@ export function InstagramBottomNav({
           </TouchableOpacity>
         </View>
 
-        <View style={styles.createTypeSelector}>
+        <View style={[styles.createTypeSelector, { justifyContent: 'center' }]}>
           <TouchableOpacity 
             style={[styles.createTypeButton, { 
               backgroundColor: createType === 'post' ? getColors(colorScheme).tint : 'transparent',
@@ -139,41 +119,27 @@ export function InstagramBottomNav({
 
           <TouchableOpacity 
             style={[styles.createTypeButton, { 
-              backgroundColor: createType === 'match' ? getColors(colorScheme).tint : 'transparent',
+              backgroundColor: 'transparent',
               borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
             }]}
-            onPress={() => setCreateType('match')}
+            onPress={() => {
+              const { router } = require('expo-router');
+              router.push('/create-match');
+              setShowCreateModal(false);
+            }}
           >
             <Text style={[styles.createTypeIcon, { 
-              color: createType === 'match' ? 'white' : getColors(colorScheme).text 
+              color: getColors(colorScheme).text 
             }]}>
               🏏
             </Text>
             <Text style={[styles.createTypeLabel, { 
-              color: createType === 'match' ? 'white' : getColors(colorScheme).text 
+              color: getColors(colorScheme).text 
             }]}>
               Match
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.createTypeButton, { 
-              backgroundColor: createType === 'team' ? getColors(colorScheme).tint : 'transparent',
-              borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
-            }]}
-            onPress={() => setCreateType('team')}
-          >
-            <Text style={[styles.createTypeIcon, { 
-              color: createType === 'team' ? 'white' : getColors(colorScheme).text 
-            }]}>
-              👥
-            </Text>
-            <Text style={[styles.createTypeLabel, { 
-              color: createType === 'team' ? 'white' : getColors(colorScheme).text 
-            }]}>
-              Team
-            </Text>
-          </TouchableOpacity>
         </View>
 
         <ScrollView style={styles.modalContent}>
@@ -200,99 +166,7 @@ export function InstagramBottomNav({
             </View>
           )}
 
-          {createType === 'match' && (
-            <View style={styles.createForm}>
-              <Text style={[styles.formLabel, { 
-                color: getColors(colorScheme).text 
-              }]}>
-                Create a Match
-              </Text>
-              
-              <TextInput
-                style={[styles.textInput, { 
-                  color: getColors(colorScheme).text,
-                  backgroundColor: colorScheme === 'dark' ? '#333' : '#f8f9fa',
-                  borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
-                }]}
-                placeholder="Team A"
-                placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
-                value={matchData.teamA}
-                onChangeText={(text) => setMatchData(prev => ({ ...prev, teamA: text }))}
-              />
-              
-              <TextInput
-                style={[styles.textInput, { 
-                  color: getColors(colorScheme).text,
-                  backgroundColor: colorScheme === 'dark' ? '#333' : '#f8f9fa',
-                  borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
-                }]}
-                placeholder="Team B"
-                placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
-                value={matchData.teamB}
-                onChangeText={(text) => setMatchData(prev => ({ ...prev, teamB: text }))}
-              />
-              
-              <TextInput
-                style={[styles.textInput, { 
-                  color: getColors(colorScheme).text,
-                  backgroundColor: colorScheme === 'dark' ? '#333' : '#f8f9fa',
-                  borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
-                }]}
-                placeholder="Location"
-                placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
-                value={matchData.location}
-                onChangeText={(text) => setMatchData(prev => ({ ...prev, location: text }))}
-              />
-            </View>
-          )}
 
-          {createType === 'team' && (
-            <View style={styles.createForm}>
-              <Text style={[styles.formLabel, { 
-                color: getColors(colorScheme).text 
-              }]}>
-                Create a Team
-              </Text>
-              
-              <TextInput
-                style={[styles.textInput, { 
-                  color: getColors(colorScheme).text,
-                  backgroundColor: colorScheme === 'dark' ? '#333' : '#f8f9fa',
-                  borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
-                }]}
-                placeholder="Team Name"
-                placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
-                value={teamData.name}
-                onChangeText={(text) => setTeamData(prev => ({ ...prev, name: text }))}
-              />
-              
-              <TextInput
-                style={[styles.textInput, { 
-                  color: getColors(colorScheme).text,
-                  backgroundColor: colorScheme === 'dark' ? '#333' : '#f8f9fa',
-                  borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
-                }]}
-                placeholder="Description"
-                placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
-                value={teamData.description}
-                onChangeText={(text) => setTeamData(prev => ({ ...prev, description: text }))}
-                multiline
-                numberOfLines={3}
-              />
-              
-              <TextInput
-                style={[styles.textInput, { 
-                  color: getColors(colorScheme).text,
-                  backgroundColor: colorScheme === 'dark' ? '#333' : '#f8f9fa',
-                  borderColor: colorScheme === 'dark' ? '#555' : '#ddd'
-                }]}
-                placeholder="Location"
-                placeholderTextColor={colorScheme === 'dark' ? '#999' : '#666'}
-                value={teamData.location}
-                onChangeText={(text) => setTeamData(prev => ({ ...prev, location: text }))}
-              />
-            </View>
-          )}
         </ScrollView>
 
         <View style={styles.modalFooter}>
@@ -354,7 +228,7 @@ export function InstagramBottomNav({
                 color: activeSection === item.key 
                   ? getColors(colorScheme).tint 
                   : getColors(colorScheme).text,
-                fontSize: item.isCenter ? 24 : 20
+                fontSize: item.isCenter ? 20 : 16
               }
             ]}>
               {activeSection === item.key ? item.activeIcon : item.icon}
@@ -382,17 +256,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
     borderTopWidth: 1,
-    paddingBottom: 20, // Safe area for bottom
+    paddingBottom: 16, // Safe area for bottom
+    maxWidth: '100%',
+    alignSelf: 'center',
   },
   navButton: {
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderRadius: 6,
     flex: 1,
+    minWidth: 60,
   },
   centerButton: {
     backgroundColor: 'rgba(0, 123, 255, 0.1)',
@@ -403,10 +280,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 123, 255, 0.1)',
   },
   navIcon: {
-    marginBottom: 4,
+    marginBottom: 2,
   },
   navLabel: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '600',
   },
   modalContainer: {
@@ -442,6 +319,7 @@ const styles = StyleSheet.create({
   },
   createTypeButton: {
     flex: 1,
+    maxWidth: 150,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

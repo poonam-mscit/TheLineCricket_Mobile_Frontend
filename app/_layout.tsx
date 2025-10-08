@@ -6,8 +6,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
-import { useColorScheme } from 'react-native';
 import { ReduxProvider } from '@/src/components/ReduxProvider';
+import { useColorScheme } from 'react-native';
 
 export {
     // Catch any errors thrown by the Layout component.
@@ -58,6 +58,8 @@ function RootLayoutNav() {
       <Stack>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="home" options={{ headerShown: false }} />
+        <Stack.Screen name="profile" options={{ headerShown: false }} />
+        <Stack.Screen name="create-match" options={{ headerShown: false }} />
         <Stack.Screen name="signup" options={{ headerShown: false }} />
         <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
         <Stack.Screen name="messages" options={{ headerShown: false }} />

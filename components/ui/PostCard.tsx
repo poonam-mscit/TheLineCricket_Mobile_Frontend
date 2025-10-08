@@ -1,8 +1,7 @@
 import { Text } from '@/components/Themed';
-import { useColorScheme } from 'react-native';
 import { getColors } from '@/constants/Colors';
 import React, { useState } from 'react';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native';
 import { CommentButton } from './CommentButton';
 import { LikeButton } from './LikeButton';
 
@@ -13,14 +12,17 @@ interface Post {
     username: string;
     fullName: string;
     avatar?: string;
+    verified?: boolean;
   };
   content: string;
   imageUrl?: string;
   location?: string;
   likes: number;
   comments: number;
+  shares: number;
   createdAt: Date;
   isLiked: boolean;
+  isBookmarked?: boolean;
 }
 
 interface PostCardProps {
@@ -28,17 +30,24 @@ interface PostCardProps {
   onLike: (postId: string) => void;
   onComment: (postId: string, comment: string) => void;
   onShare: (postId: string) => void;
+  onBookmark?: (postId: string) => void;
 }
 
-export function PostCard({ post, onLike, onComment, onShare }: PostCardProps) {
+export function PostCard({ post, onLike, onComment, onShare, onBookmark }: PostCardProps) {
   const colorScheme = useColorScheme();
   const [isLiked, setIsLiked] = useState(post.isLiked);
   const [currentLikes, setCurrentLikes] = useState(post.likes);
+  const [isBookmarked, setIsBookmarked] = useState(post.isBookmarked || false);
 
   const handleLike = () => {
     setIsLiked(!isLiked);
     setCurrentLikes(prev => isLiked ? prev - 1 : prev + 1);
     onLike(post.id);
+  };
+
+  const handleBookmark = () => {
+    setIsBookmarked(!isBookmarked);
+    onBookmark?.(post.id);
   };
 
   const formatTimeAgo = (date: Date) => {
@@ -67,11 +76,16 @@ export function PostCard({ post, onLike, onComment, onShare }: PostCardProps) {
             </Text>
           </View>
           <View style={styles.authorDetails}>
-            <Text style={[styles.authorName, { 
-              color: getColors(colorScheme).text 
-            }]}>
-              {post.author.fullName}
-            </Text>
+            <View style={styles.authorNameRow}>
+              <Text style={[styles.authorName, { 
+                color: getColors(colorScheme).text 
+              }]}>
+                {post.author.fullName}
+              </Text>
+              {post.author.verified && (
+                <Text style={styles.verifiedBadge}>✓</Text>
+              )}
+            </View>
             <Text style={[styles.username, { 
               color: getColors(colorScheme).text 
             }]}>
@@ -128,9 +142,21 @@ export function PostCard({ post, onLike, onComment, onShare }: PostCardProps) {
           <Text style={[styles.actionText, { 
             color: getColors(colorScheme).text 
           }]}>
-            Share
+            Share ({post.shares || 0})
           </Text>
         </TouchableOpacity>
+        {onBookmark && (
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={handleBookmark}
+          >
+            <Text style={[styles.actionText, { 
+              color: isBookmarked ? getColors(colorScheme).tint : getColors(colorScheme).text 
+            }]}>
+              {isBookmarked ? '🔖' : '📖'} Bookmark
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -176,10 +202,19 @@ const styles = StyleSheet.create({
   authorDetails: {
     flex: 1,
   },
+  authorNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
   authorName: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 2,
+  },
+  verifiedBadge: {
+    fontSize: 12,
+    color: '#1DA1F2',
+    marginLeft: 4,
   },
   username: {
     fontSize: 14,
