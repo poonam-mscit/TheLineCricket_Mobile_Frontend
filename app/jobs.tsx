@@ -1,9 +1,13 @@
+import { JobCRUDDemo } from '@/components/JobCRUDDemo';
 import { Text } from '@/components/Themed';
 import { getColors } from '@/constants/Colors';
+import { useAuth } from '@/src/hooks/useAuth';
+import { useJob } from '@/src/hooks/useJob';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Dimensions,
+    Modal,
     RefreshControl,
     SafeAreaView,
     ScrollView,
@@ -20,18 +24,36 @@ import { InstagramBottomNav } from '@/components/ui/InstagramBottomNav';
 export default function JobsScreen() {
   const [activeSection, setActiveSection] = useState('jobs');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showCRUDDemo, setShowCRUDDemo] = useState(false);
   const colorScheme = useColorScheme();
   const { width } = Dimensions.get('window');
   
-  // Mock user data following existing patterns
+  // Use real user data from auth context
+  const { user: authUser } = useAuth();
+  const { 
+    jobs, 
+    currentJob, 
+    loadJobs, 
+    loadJobById,
+    applyToJob,
+    saveJob,
+    unsaveJob,
+    isLoading: jobLoading 
+  } = useJob();
+
+  // Real user data from database
   const user = {
-    id: '1',
-    fullName: 'Demo User',
-    username: 'demo_user',
-    email: 'demo@example.com',
-    avatar: 'https://via.placeholder.com/40',
-    verified: true
+    id: authUser?.id || '',
+    fullName: authUser?.fullName || '',
+    username: authUser?.username || '',
+    email: authUser?.email || '',
+    avatar: authUser?.avatar || '',
+    verified: authUser?.verified || false
   };
+
+  useEffect(() => {
+    loadJobs();
+  }, [loadJobs]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -245,6 +267,24 @@ export default function JobsScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Database CRUD Operations Section */}
+      <View style={[styles.crudDemoSection, { backgroundColor: getColors(colorScheme).card }]}>
+        <Text style={[styles.crudDemoTitle, { color: getColors(colorScheme).text }]}>
+          Database CRUD Operations
+        </Text>
+        <Text style={[styles.crudDemoDescription, { color: getColors(colorScheme).textSecondary }]}>
+          Test job management with real database integration
+        </Text>
+        <View style={styles.crudDemoButtons}>
+          <TouchableOpacity 
+            style={[styles.crudDemoButton, { backgroundColor: getColors(colorScheme).tint }]}
+            onPress={() => setShowCRUDDemo(true)}
+          >
+            <Text style={styles.crudDemoButtonText}>Job CRUD Demo</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </ScrollView>
   );
 
@@ -264,6 +304,24 @@ export default function JobsScreen() {
     }]}>
       {renderJobsContent()}
       {renderBottomNavigation()}
+
+      {/* CRUD Demo Modal */}
+      <Modal
+        visible={showCRUDDemo}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowCRUDDemo(false)}
+      >
+        <JobCRUDDemo />
+        <TouchableOpacity 
+          style={[styles.closeCRUDDemoButton, {
+            backgroundColor: getColors(colorScheme).tint
+          }]}
+          onPress={() => setShowCRUDDemo(false)}
+        >
+          <Text style={styles.closeCRUDDemoButtonText}>Close Demo</Text>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -380,5 +438,51 @@ const styles = StyleSheet.create({
   jobsButtonText: {
     fontSize: 18,
     color: '#374151',
+  },
+  crudDemoSection: {
+    margin: 16,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  crudDemoTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  crudDemoDescription: {
+    fontSize: 14,
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  crudDemoButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  crudDemoButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  crudDemoButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  closeCRUDDemoButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  closeCRUDDemoButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

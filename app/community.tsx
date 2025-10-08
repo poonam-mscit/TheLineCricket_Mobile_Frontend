@@ -1,20 +1,25 @@
+import { CommunityCRUDDemo } from '@/components/CommunityCRUDDemo';
 import { Text } from '@/components/Themed';
 import { CommunityCover } from '@/components/ui/CommunityCover';
 import { CommunityEvents } from '@/components/ui/CommunityEvents';
 import { CommunityMembers } from '@/components/ui/CommunityMembers';
 import { PageAboutSection } from '@/components/ui/PageAboutSection';
 import { getColors } from '@/constants/Colors';
+import { useAuth } from '@/src/hooks/useAuth';
+import { useCommunity } from '@/src/hooks/useCommunity';
 import { CommunityData } from '@/types/pages';
 import { getPageById, savePage } from '@/utils/pageStorage';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
+    Modal,
     RefreshControl,
     SafeAreaView,
     ScrollView,
     StatusBar,
     StyleSheet,
+    TouchableOpacity,
     useColorScheme,
     View
 } from 'react-native';
@@ -26,11 +31,26 @@ export default function CommunityScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showCRUDDemo, setShowCRUDDemo] = useState(false);
   const colorScheme = useColorScheme();
+  
+  // Use real data from hooks
+  const { user: authUser } = useAuth();
+  const { 
+    communities, 
+    currentCommunity, 
+    loadCommunities, 
+    loadCommunityById,
+    joinCommunity,
+    leaveCommunity,
+    isLoading: communityLoading 
+  } = useCommunity();
 
   useEffect(() => {
     loadCommunityData();
-  }, [pageId]);
+    // Load communities from API
+    loadCommunities();
+  }, [pageId, loadCommunities]);
 
   const loadCommunityData = async () => {
     try {
@@ -184,9 +204,45 @@ export default function CommunityScreen() {
           onEventPress={(eventId) => Alert.alert('Event', `View event ${eventId}`)}
           onJoinEvent={(eventId) => Alert.alert('Join Event', `Join event ${eventId}`)}
         />
+
+        {/* Database CRUD Operations Section */}
+        <View style={[styles.crudDemoSection, { backgroundColor: getColors(colorScheme).card }]}>
+          <Text style={[styles.crudDemoTitle, { color: getColors(colorScheme).text }]}>
+            Database CRUD Operations
+          </Text>
+          <Text style={[styles.crudDemoDescription, { color: getColors(colorScheme).textSecondary }]}>
+            Test community management with real database integration
+          </Text>
+          <View style={styles.crudDemoButtons}>
+            <TouchableOpacity 
+              style={[styles.crudDemoButton, { backgroundColor: getColors(colorScheme).tint }]}
+              onPress={() => setShowCRUDDemo(true)}
+            >
+              <Text style={styles.crudDemoButtonText}>Community CRUD Demo</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
         
         <View style={styles.bottomPadding} />
       </ScrollView>
+
+      {/* CRUD Demo Modal */}
+      <Modal
+        visible={showCRUDDemo}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowCRUDDemo(false)}
+      >
+        <CommunityCRUDDemo />
+        <TouchableOpacity 
+          style={[styles.closeCRUDDemoButton, {
+            backgroundColor: getColors(colorScheme).tint
+          }]}
+          onPress={() => setShowCRUDDemo(false)}
+        >
+          <Text style={styles.closeCRUDDemoButtonText}>Close Demo</Text>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -232,6 +288,52 @@ const styles = StyleSheet.create({
   },
   bottomPadding: {
     height: 20,
+  },
+  crudDemoSection: {
+    margin: 16,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  crudDemoTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  crudDemoDescription: {
+    fontSize: 14,
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  crudDemoButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  crudDemoButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  crudDemoButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  closeCRUDDemoButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  closeCRUDDemoButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

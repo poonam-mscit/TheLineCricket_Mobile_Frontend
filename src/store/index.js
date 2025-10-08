@@ -6,10 +6,13 @@ import { FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, R
 // Import slices
 import apiReducer from './slices/apiSlice';
 import authReducer from './slices/authSlice';
+import communityReducer from './slices/communitySlice';
+import jobReducer from './slices/jobSlice';
 import matchReducer from './slices/matchSlice';
 import postReducer from './slices/postSlice';
 import profileReducer from './slices/profileSlice';
 import socketReducer from './slices/socketSlice';
+import venueReducer from './slices/venueSlice';
 
 // Persist configuration for auth slice
 const authPersistConfig = {
@@ -36,6 +39,9 @@ const rootReducer = combineReducers({
   profile: profileReducer,
   matches: matchReducer,
   posts: postReducer,
+  communities: communityReducer,
+  jobs: jobReducer,
+  venues: venueReducer,
   socket: socketReducer,
 });
 

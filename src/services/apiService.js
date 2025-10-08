@@ -132,6 +132,228 @@ class ApiService {
   }
 
   /**
+   * Community Management APIs
+   */
+
+  // Get all communities
+  async getCommunities(params = {}) {
+    try {
+      const response = await apiClient.get('/api/communities', { params });
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Get community by ID
+  async getCommunityById(communityId) {
+    try {
+      const response = await apiClient.get(`/api/communities/${communityId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Create community
+  async createCommunity(communityData) {
+    try {
+      const response = await apiClient.post('/api/communities', communityData);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Update community
+  async updateCommunity(communityId, communityData) {
+    try {
+      const response = await apiClient.put(`/api/communities/${communityId}`, communityData);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Delete community
+  async deleteCommunity(communityId) {
+    try {
+      const response = await apiClient.delete(`/api/communities/${communityId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Join community
+  async joinCommunity(communityId) {
+    try {
+      const response = await apiClient.post(`/api/communities/${communityId}/join`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Leave community
+  async leaveCommunity(communityId) {
+    try {
+      const response = await apiClient.post(`/api/communities/${communityId}/leave`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Job Management APIs
+   */
+
+  // Get all jobs
+  async getJobs(params = {}) {
+    try {
+      const response = await apiClient.get('/api/jobs', { params });
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Get job by ID
+  async getJobById(jobId) {
+    try {
+      const response = await apiClient.get(`/api/jobs/${jobId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Create job
+  async createJob(jobData) {
+    try {
+      const response = await apiClient.post('/api/jobs', jobData);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Update job
+  async updateJob(jobId, jobData) {
+    try {
+      const response = await apiClient.put(`/api/jobs/${jobId}`, jobData);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Delete job
+  async deleteJob(jobId) {
+    try {
+      const response = await apiClient.delete(`/api/jobs/${jobId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Apply to job
+  async applyToJob(jobId) {
+    try {
+      const response = await apiClient.post(`/api/jobs/${jobId}/apply`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Save job
+  async saveJob(jobId) {
+    try {
+      const response = await apiClient.post(`/api/jobs/${jobId}/save`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Unsave job
+  async unsaveJob(jobId) {
+    try {
+      const response = await apiClient.delete(`/api/jobs/${jobId}/save`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Venue Management APIs
+   */
+
+  // Get all venues
+  async getVenues(params = {}) {
+    try {
+      const response = await apiClient.get('/api/venues', { params });
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Get venue by ID
+  async getVenueById(venueId) {
+    try {
+      const response = await apiClient.get(`/api/venues/${venueId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Create venue
+  async createVenue(venueData) {
+    try {
+      const response = await apiClient.post('/api/venues', venueData);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Update venue
+  async updateVenue(venueId, venueData) {
+    try {
+      const response = await apiClient.put(`/api/venues/${venueId}`, venueData);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Delete venue
+  async deleteVenue(venueId) {
+    try {
+      const response = await apiClient.delete(`/api/venues/${venueId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Book venue
+  async bookVenue(venueId, bookingData) {
+    try {
+      const response = await apiClient.post(`/api/venues/${venueId}/book`, bookingData);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
    * Post Management APIs
    */
 

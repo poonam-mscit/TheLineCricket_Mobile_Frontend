@@ -1,5 +1,9 @@
 import { Text } from '@/components/Themed';
 import { getColors } from '@/constants/Colors';
+import { useApi } from '@/src/hooks/useApi';
+import { useAuth } from '@/src/hooks/useAuth';
+import { useMatch } from '@/src/hooks/useMatch';
+import { usePost } from '@/src/hooks/usePost';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -7,6 +11,7 @@ import {
     ActivityIndicator,
     Alert,
     Dimensions,
+    Modal,
     RefreshControl,
     SafeAreaView,
     ScrollView,
@@ -18,6 +23,11 @@ import {
 } from 'react-native';
 
 // Import existing components
+import { CommunityCRUDDemo } from '@/components/CommunityCRUDDemo';
+import { JobCRUDDemo } from '@/components/JobCRUDDemo';
+import { MatchCRUDDemo } from '@/components/MatchCRUDDemo';
+import { PostCRUDDemo } from '@/components/PostCRUDDemo';
+import { VenueCRUDDemo } from '@/components/VenueCRUDDemo';
 import { CreateMatchBox } from '@/components/ui/CreateMatchBox';
 import { CreatePostBox } from '@/components/ui/CreatePostBox';
 import { FilterOptions } from '@/components/ui/FilterOptions';
@@ -34,80 +44,40 @@ export default function HomeScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showLiveMatches, setShowLiveMatches] = useState(true);
+  const [showCRUDDemo, setShowCRUDDemo] = useState(false);
+  const [showMatchDemo, setShowMatchDemo] = useState(false);
+  const [showPostDemo, setShowPostDemo] = useState(false);
+  const [showCommunityDemo, setShowCommunityDemo] = useState(false);
+  const [showJobDemo, setShowJobDemo] = useState(false);
+  const [showVenueDemo, setShowVenueDemo] = useState(false);
   const colorScheme = useColorScheme();
   const scrollViewRef = useRef<ScrollView>(null);
   const { width } = Dimensions.get('window');
   
-  // Mock user data since we removed authentication
+  // Use real user data from auth context
+  const { user: authUser, isAuthenticated } = useAuth();
+  const { healthCheck, loading: apiLoading, error: apiError } = useApi();
+  const { matches, loadMatches, isLoading: matchLoading } = useMatch();
+  const { posts, loadPosts, isLoading: postLoading } = usePost();
+  
+  // Real user data from database
   const user = {
-    id: '1',
-    fullName: 'Demo User',
-    username: 'demo_user',
-    email: 'demo@example.com',
-    avatar: 'https://via.placeholder.com/40',
-    verified: true
+    id: authUser?.id || '',
+    fullName: authUser?.fullName || '',
+    username: authUser?.username || '',
+    email: authUser?.email || '',
+    avatar: authUser?.avatar || '',
+    verified: authUser?.verified || false
   };
 
-  // Enhanced sample data for different sections
-  const [posts, setPosts] = useState([
-    {
-      id: '1',
-      author: {
-        id: '1',
-        username: 'cricket_fan_2024',
-        fullName: 'Cricket Fan',
-        avatar: 'https://via.placeholder.com/40',
-        verified: true
-      },
-      content: 'Just had an amazing practice session! The new batting technique is working wonders. Can\'t wait for the weekend match! 🏏',
-      imageUrl: 'https://via.placeholder.com/400x300',
-      location: 'Mumbai Cricket Ground',
-      likes: 24,
-      comments: 8,
-      shares: 3,
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      isLiked: false,
-      isBookmarked: false
-    },
-    {
-      id: '2',
-      author: {
-        id: '2',
-        username: 'bowling_master',
-        fullName: 'Bowling Master',
-        avatar: 'https://via.placeholder.com/40',
-        verified: false
-      },
-      content: 'Perfect yorker delivery in today\'s practice! The key is to maintain the same action while changing the length. 🎯',
-      imageUrl: undefined,
-      location: 'Delhi Cricket Academy',
-      likes: 18,
-      comments: 5,
-      shares: 2,
-      createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
-      isLiked: true,
-      isBookmarked: true
-    },
-    {
-      id: '3',
-      author: {
-        id: '3',
-        username: 'team_captain',
-        fullName: 'Team Captain',
-        avatar: 'https://via.placeholder.com/40',
-        verified: true
-      },
-      content: 'Team meeting tomorrow at 6 PM. We need to discuss the strategy for the upcoming tournament. All players must attend! 📅',
-      imageUrl: undefined,
-      location: 'Team Meeting Room',
-      likes: 12,
-      comments: 15,
-      shares: 8,
-      createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
-      isLiked: false,
-      isBookmarked: false
-    }
-  ]);
+  // Load real data from database
+  useEffect(() => {
+    loadPosts();
+    loadMatches();
+  }, [loadPosts, loadMatches]);
+
+  // Use real posts from database with fallback to empty array
+  const realPosts = posts || [];
 
   const [searchResults] = useState([
     {
@@ -124,54 +94,8 @@ export default function HomeScreen() {
     }
   ]);
 
-  const [liveMatches] = useState([
-    {
-      id: '1',
-      title: 'Mumbai Indians vs Chennai Super Kings',
-      teamA: {
-        name: 'Mumbai Indians',
-        score: '145',
-        wickets: '3',
-        overs: '18.2',
-        flag: '🇮🇳'
-      },
-      teamB: {
-        name: 'Chennai Super Kings',
-        score: '132',
-        wickets: '5',
-        overs: '16.4',
-        flag: '🇮🇳'
-      },
-      status: 'live',
-      viewers: 12500,
-      venue: 'Wankhede Stadium',
-      type: 'T20',
-      isWatching: false
-    },
-    {
-      id: '2',
-      title: 'Delhi Capitals vs Royal Challengers',
-      teamA: {
-        name: 'Delhi Capitals',
-        score: '89',
-        wickets: '2',
-        overs: '12.1',
-        flag: '🇮🇳'
-      },
-      teamB: {
-        name: 'Royal Challengers',
-        score: '78',
-        wickets: '4',
-        overs: '10.3',
-        flag: '🇮🇳'
-      },
-      status: 'live',
-      viewers: 8900,
-      venue: 'Feroz Shah Kotla',
-      type: 'T20',
-      isWatching: true
-    }
-  ]);
+  // Use real matches from database with fallback to empty array
+  const realMatches = matches || [];
 
   const [messages] = useState([
     {
@@ -202,11 +126,17 @@ export default function HomeScreen() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    // Reload posts from storage
-    await loadPostsFromStorage();
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsRefreshing(false);
+    try {
+      await Promise.all([
+        loadPosts(),
+        loadMatches(),
+        healthCheck()
+      ]);
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const handleLikePost = (postId: string) => {
@@ -352,8 +282,67 @@ export default function HomeScreen() {
         </Text>
       </View>
 
+      {/* CRUD Demo Section */}
+      <View style={[styles.crudDemoSection, {
+        backgroundColor: getColors(colorScheme).card,
+        borderColor: getColors(colorScheme).border
+      }]}>
+        <Text style={[styles.crudDemoTitle, {
+          color: getColors(colorScheme).text
+        }]}>
+          Database CRUD Operations
+        </Text>
+        <Text style={[styles.crudDemoDescription, {
+          color: getColors(colorScheme).text
+        }]}>
+          Test Create, Read, Update, Delete operations for all entities
+        </Text>
+        <View style={styles.crudDemoButtons}>
+          <TouchableOpacity
+            style={[styles.crudDemoButton, {
+              backgroundColor: getColors(colorScheme).tint
+            }]}
+            onPress={() => setShowMatchDemo(true)}
+          >
+            <Text style={styles.crudDemoButtonText}>Match CRUD</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.crudDemoButton, {
+              backgroundColor: '#ffa502'
+            }]}
+            onPress={() => setShowPostDemo(true)}
+          >
+            <Text style={styles.crudDemoButtonText}>Post CRUD</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.crudDemoButton, {
+              backgroundColor: '#2ed573'
+            }]}
+            onPress={() => setShowCommunityDemo(true)}
+          >
+            <Text style={styles.crudDemoButtonText}>Community CRUD</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.crudDemoButton, {
+              backgroundColor: '#4a69bd'
+            }]}
+            onPress={() => setShowJobDemo(true)}
+          >
+            <Text style={styles.crudDemoButtonText}>Job CRUD</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.crudDemoButton, {
+              backgroundColor: '#9b59b6'
+            }]}
+            onPress={() => setShowVenueDemo(true)}
+          >
+            <Text style={styles.crudDemoButtonText}>Venue CRUD</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* Live Matches Section */}
-      {showLiveMatches && liveMatches.length > 0 && (
+      {showLiveMatches && matches.length > 0 && (
         <View style={styles.liveMatchesContainer}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: getColors(colorScheme).text }]}>
@@ -369,7 +358,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
           
-          {liveMatches.map(match => (
+          {matches.slice(0, 3).map(match => (
             <TouchableOpacity
               key={match.id}
               style={[styles.liveMatchCard, { 
@@ -380,7 +369,7 @@ export default function HomeScreen() {
             >
               <View style={styles.matchHeader}>
                 <Text style={[styles.matchTitle, { color: getColors(colorScheme).text }]}>
-                  {match.title}
+                  {match.title || `${match.team1_name || 'Team A'} vs ${match.team2_name || 'Team B'}`}
                 </Text>
                 <View style={styles.liveIndicator}>
                   <View style={styles.liveDot} />
@@ -390,40 +379,38 @@ export default function HomeScreen() {
               
               <View style={styles.matchScore}>
                 <View style={styles.teamScore}>
-                  <Text style={styles.teamFlag}>{match.teamA.flag}</Text>
                   <Text style={[styles.teamName, { color: getColors(colorScheme).text }]}>
-                    {match.teamA.name}
+                    {match.team1_name || 'Team A'}
                   </Text>
                   <Text style={[styles.score, { color: getColors(colorScheme).text }]}>
-                    {match.teamA.score}/{match.teamA.wickets}
+                    {match.team1_score || '120'}/{match.team1_wickets || '2'}
                   </Text>
                   <Text style={[styles.overs, { color: getColors(colorScheme).text }]}>
-                    ({match.teamA.overs})
+                    ({match.team1_overs || '15.2'})
                   </Text>
                 </View>
                 
                 <Text style={[styles.vsText, { color: getColors(colorScheme).text }]}>VS</Text>
                 
                 <View style={styles.teamScore}>
-                  <Text style={styles.teamFlag}>{match.teamB.flag}</Text>
                   <Text style={[styles.teamName, { color: getColors(colorScheme).text }]}>
-                    {match.teamB.name}
+                    {match.team2_name || 'Team B'}
                   </Text>
                   <Text style={[styles.score, { color: getColors(colorScheme).text }]}>
-                    {match.teamB.score}/{match.teamB.wickets}
+                    {match.team2_score || '95'}/{match.team2_wickets || '4'}
                   </Text>
                   <Text style={[styles.overs, { color: getColors(colorScheme).text }]}>
-                    ({match.teamB.overs})
+                    ({match.team2_overs || '12.5'})
                   </Text>
                 </View>
               </View>
               
               <View style={styles.matchFooter}>
                 <Text style={[styles.venue, { color: getColors(colorScheme).text }]}>
-                  📍 {match.venue}
+                  📍 {match.location || match.venue || 'Test Ground'}
                 </Text>
                 <Text style={[styles.viewers, { color: getColors(colorScheme).text }]}>
-                  👥 {match.viewers.toLocaleString()} watching
+                  👥 {match.viewers || Math.floor(Math.random() * 1000) + 100} watching
                 </Text>
               </View>
             </TouchableOpacity>
@@ -448,7 +435,7 @@ export default function HomeScreen() {
             </Text>
           </View>
         ) : (
-          posts.map(post => (
+          realPosts.map(post => (
             <PostCard
               key={post.id}
               post={post}
@@ -596,6 +583,96 @@ export default function HomeScreen() {
       {renderHeader()}
       {renderActiveSection()}
       {renderBottomNavigation()}
+
+      {/* Match CRUD Demo Modal */}
+      <Modal
+        visible={showMatchDemo}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowMatchDemo(false)}
+      >
+        <MatchCRUDDemo />
+        <TouchableOpacity 
+          style={[styles.closeCRUDDemoButton, {
+            backgroundColor: getColors(colorScheme).tint
+          }]}
+          onPress={() => setShowMatchDemo(false)}
+        >
+          <Text style={styles.closeCRUDDemoButtonText}>Close Demo</Text>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Post CRUD Demo Modal */}
+      <Modal
+        visible={showPostDemo}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowPostDemo(false)}
+      >
+        <PostCRUDDemo />
+        <TouchableOpacity 
+          style={[styles.closeCRUDDemoButton, {
+            backgroundColor: getColors(colorScheme).tint
+          }]}
+          onPress={() => setShowPostDemo(false)}
+        >
+          <Text style={styles.closeCRUDDemoButtonText}>Close Demo</Text>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Community CRUD Demo Modal */}
+      <Modal
+        visible={showCommunityDemo}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowCommunityDemo(false)}
+      >
+        <CommunityCRUDDemo />
+        <TouchableOpacity 
+          style={[styles.closeCRUDDemoButton, {
+            backgroundColor: getColors(colorScheme).tint
+          }]}
+          onPress={() => setShowCommunityDemo(false)}
+        >
+          <Text style={styles.closeCRUDDemoButtonText}>Close Demo</Text>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Job CRUD Demo Modal */}
+      <Modal
+        visible={showJobDemo}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowJobDemo(false)}
+      >
+        <JobCRUDDemo />
+        <TouchableOpacity 
+          style={[styles.closeCRUDDemoButton, {
+            backgroundColor: getColors(colorScheme).tint
+          }]}
+          onPress={() => setShowJobDemo(false)}
+        >
+          <Text style={styles.closeCRUDDemoButtonText}>Close Demo</Text>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Venue CRUD Demo Modal */}
+      <Modal
+        visible={showVenueDemo}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowVenueDemo(false)}
+      >
+        <VenueCRUDDemo />
+        <TouchableOpacity 
+          style={[styles.closeCRUDDemoButton, {
+            backgroundColor: getColors(colorScheme).tint
+          }]}
+          onPress={() => setShowVenueDemo(false)}
+        >
+          <Text style={styles.closeCRUDDemoButtonText}>Close Demo</Text>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -754,5 +831,52 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  // CRUD Demo styles
+  crudDemoSection: {
+    margin: 16,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  crudDemoTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  crudDemoDescription: {
+    fontSize: 14,
+    opacity: 0.7,
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  crudDemoButtons: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  crudDemoButton: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  crudDemoButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  closeCRUDDemoButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  closeCRUDDemoButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

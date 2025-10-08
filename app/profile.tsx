@@ -20,7 +20,6 @@ import {
 } from 'react-native';
 
 // Import existing components
-import { APITestComponent } from '@/components/APITestComponent';
 import { ProfileCRUDDemo } from '@/components/ProfileCRUDDemo';
 import { AchievementsEditor } from '@/components/ui/AchievementsEditor';
 import { AwardsEditor } from '@/components/ui/AwardsEditor';
@@ -53,7 +52,6 @@ export default function ProfileScreen() {
   const [editingPageData, setEditingPageData] = useState<any>(null);
   const [showCRUDDemo, setShowCRUDDemo] = useState(false);
   const [showProfileForm, setShowProfileForm] = useState(false);
-  const [showAPITest, setShowAPITest] = useState(false);
   const colorScheme = useColorScheme();
   const { width } = Dimensions.get('window');
   
@@ -2433,14 +2431,6 @@ export default function ProfileScreen() {
             <Text style={styles.crudDemoButtonText}>Open CRUD Demo</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity 
-            style={[styles.crudDemoButton, {
-              backgroundColor: '#ffa502'
-            }]}
-            onPress={() => setShowAPITest(true)}
-          >
-            <Text style={styles.crudDemoButtonText}>Test API Connection</Text>
-          </TouchableOpacity>
         </View>
         
       </ScrollView>
@@ -2500,23 +2490,6 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </Modal>
       
-      {/* API Test Modal */}
-      <Modal
-        visible={showAPITest}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowAPITest(false)}
-      >
-        <APITestComponent />
-        <TouchableOpacity 
-          style={[styles.closeCRUDDemoButton, {
-            backgroundColor: getColors(colorScheme).tint
-          }]}
-          onPress={() => setShowAPITest(false)}
-        >
-          <Text style={styles.closeCRUDDemoButtonText}>Close Test</Text>
-        </TouchableOpacity>
-      </Modal>
     </SafeAreaView>
   );
 }

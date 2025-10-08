@@ -93,6 +93,72 @@ export const useApi = () => {
   const leaveMatch = useCallback((matchId) => 
     apiCall(apiService.leaveMatch, matchId), [apiCall]);
 
+  // Communities API calls
+  const getCommunities = useCallback((params = {}) => 
+    apiCall(apiService.getCommunities, params), [apiCall]);
+
+  const getCommunityById = useCallback((communityId) => 
+    apiCall(apiService.getCommunityById, communityId), [apiCall]);
+
+  const createCommunity = useCallback((communityData) => 
+    apiCall(apiService.createCommunity, communityData), [apiCall]);
+
+  const updateCommunity = useCallback((communityId, communityData) => 
+    apiCall(apiService.updateCommunity, communityId, communityData), [apiCall]);
+
+  const deleteCommunity = useCallback((communityId) => 
+    apiCall(apiService.deleteCommunity, communityId), [apiCall]);
+
+  const joinCommunity = useCallback((communityId) => 
+    apiCall(apiService.joinCommunity, communityId), [apiCall]);
+
+  const leaveCommunity = useCallback((communityId) => 
+    apiCall(apiService.leaveCommunity, communityId), [apiCall]);
+
+  // Jobs API calls
+  const getJobs = useCallback((params = {}) => 
+    apiCall(apiService.getJobs, params), [apiCall]);
+
+  const getJobById = useCallback((jobId) => 
+    apiCall(apiService.getJobById, jobId), [apiCall]);
+
+  const createJob = useCallback((jobData) => 
+    apiCall(apiService.createJob, jobData), [apiCall]);
+
+  const updateJob = useCallback((jobId, jobData) => 
+    apiCall(apiService.updateJob, jobId, jobData), [apiCall]);
+
+  const deleteJob = useCallback((jobId) => 
+    apiCall(apiService.deleteJob, jobId), [apiCall]);
+
+  const applyToJob = useCallback((jobId) => 
+    apiCall(apiService.applyToJob, jobId), [apiCall]);
+
+  const saveJob = useCallback((jobId) => 
+    apiCall(apiService.saveJob, jobId), [apiCall]);
+
+  const unsaveJob = useCallback((jobId) => 
+    apiCall(apiService.unsaveJob, jobId), [apiCall]);
+
+  // Venues API calls
+  const getVenues = useCallback((params = {}) => 
+    apiCall(apiService.getVenues, params), [apiCall]);
+
+  const getVenueById = useCallback((venueId) => 
+    apiCall(apiService.getVenueById, venueId), [apiCall]);
+
+  const createVenue = useCallback((venueData) => 
+    apiCall(apiService.createVenue, venueData), [apiCall]);
+
+  const updateVenue = useCallback((venueId, venueData) => 
+    apiCall(apiService.updateVenue, venueId, venueData), [apiCall]);
+
+  const deleteVenue = useCallback((venueId) => 
+    apiCall(apiService.deleteVenue, venueId), [apiCall]);
+
+  const bookVenue = useCallback((venueId, bookingData) => 
+    apiCall(apiService.bookVenue, venueId, bookingData), [apiCall]);
+
   // Messaging API calls
   const getConversations = useCallback(() => 
     apiCall(apiService.getConversations), [apiCall]);
@@ -187,6 +253,33 @@ export const useApi = () => {
     deleteMatch,
     joinMatch,
     leaveMatch,
+
+    // Communities APIs
+    getCommunities,
+    getCommunityById,
+    createCommunity,
+    updateCommunity,
+    deleteCommunity,
+    joinCommunity,
+    leaveCommunity,
+
+    // Jobs APIs
+    getJobs,
+    getJobById,
+    createJob,
+    updateJob,
+    deleteJob,
+    applyToJob,
+    saveJob,
+    unsaveJob,
+
+    // Venues APIs
+    getVenues,
+    getVenueById,
+    createVenue,
+    updateVenue,
+    deleteVenue,
+    bookVenue,
 
     // Messaging APIs
     getConversations,
