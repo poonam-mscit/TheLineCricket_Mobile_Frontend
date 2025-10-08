@@ -6,6 +6,9 @@ import { FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, R
 // Import slices
 import apiReducer from './slices/apiSlice';
 import authReducer from './slices/authSlice';
+import matchReducer from './slices/matchSlice';
+import postReducer from './slices/postSlice';
+import profileReducer from './slices/profileSlice';
 import socketReducer from './slices/socketSlice';
 
 // Persist configuration for auth slice
@@ -30,6 +33,9 @@ const persistedApiReducer = persistReducer(apiPersistConfig, apiReducer);
 const rootReducer = combineReducers({
   auth: persistedAuthReducer,
   api: persistedApiReducer,
+  profile: profileReducer,
+  matches: matchReducer,
+  posts: postReducer,
   socket: socketReducer,
 });
 

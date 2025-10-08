@@ -1,10 +1,13 @@
+import { MatchCRUDDemo } from '@/components/MatchCRUDDemo';
 import { Text } from '@/components/Themed';
 import { getColors } from '@/constants/Colors';
+import { useApi } from '@/src/hooks/useApi';
+import { useAuth } from '@/src/hooks/useAuth';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
     ActivityIndicator, Alert,
-    Dimensions, SafeAreaView,
+    Dimensions, Modal, SafeAreaView,
     ScrollView,
     StatusBar,
     StyleSheet,
@@ -56,17 +59,22 @@ export default function CreateMatchScreen() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isCreating, setIsCreating] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showCRUDDemo, setShowCRUDDemo] = useState(false);
   const colorScheme = useColorScheme();
   const { width } = Dimensions.get('window');
   
-  // Mock user data following existing patterns
+  // Use real user data from auth context
+  const { user: authUser, isAuthenticated } = useAuth();
+  const { createMatch, loading, error } = useApi();
+  
+  // Real user data from database
   const user = {
-    id: '1',
-    fullName: 'Demo User',
-    username: 'demo_user',
-    email: 'demo@example.com',
-    avatar: 'https://via.placeholder.com/40',
-    verified: true
+    id: authUser?.id || '',
+    fullName: authUser?.fullName || '',
+    username: authUser?.username || '',
+    email: authUser?.email || '',
+    avatar: authUser?.avatar || '',
+    verified: authUser?.verified || false
   };
 
   // Form data state following existing patterns
@@ -147,8 +155,65 @@ export default function CreateMatchScreen() {
     setIsCreating(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Validate required fields
+      if (!formData.title.trim()) {
+        setErrors({ title: 'Match title is required' });
+        setIsCreating(false);
+        return;
+      }
+      
+      if (!formData.location.trim()) {
+        setErrors({ location: 'Location is required' });
+        setIsCreating(false);
+        return;
+      }
+      
+      if (!formData.match_date.trim()) {
+        setErrors({ match_date: 'Match date is required' });
+        setIsCreating(false);
+        return;
+      }
+      
+      if (!formData.team1_name.trim() || !formData.team2_name.trim()) {
+        setErrors({ team1_name: 'Both team names are required' });
+        setIsCreating(false);
+        return;
+      }
+
+      // Create match data for API
+      const matchData = {
+        title: formData.title,
+        description: formData.description,
+        match_type: formData.match_type,
+        match_format: formData.match_format,
+        location: formData.location,
+        venue: formData.venue,
+        match_date: formData.match_date,
+        match_time: formData.match_time,
+        team1_name: formData.team1_name,
+        team2_name: formData.team2_name,
+        skill_level: formData.skill_level,
+        min_age: formData.min_age,
+        max_age: formData.max_age,
+        join_team: formData.join_team,
+        your_role: formData.your_role,
+        is_paid_match: formData.is_paid_match,
+        entry_fee: formData.entry_fee,
+        prize_money: formData.prize_money,
+        need_umpire: formData.need_umpire,
+        umpire_name: formData.umpire_name,
+        umpire_contact: formData.umpire_contact,
+        umpire_experience: formData.umpire_experience,
+        umpire_fee: formData.umpire_fee,
+        players_needed: formData.players_needed,
+        is_public: formData.is_public,
+        equipment_provided: formData.equipment_provided,
+        rules: formData.rules,
+        created_by: user.id
+      };
+
+      // Call API to create match
+      const result = await createMatch(matchData);
       
       Alert.alert(
         'Match Created!',
@@ -158,6 +223,7 @@ export default function CreateMatchScreen() {
         ]
       );
     } catch (error) {
+      console.error('Error creating match:', error);
       Alert.alert('Error', 'Failed to create match. Please try again.');
     } finally {
       setIsCreating(false);
@@ -181,6 +247,12 @@ export default function CreateMatchScreen() {
           onPress={handleCancel}
         >
           <Text style={styles.closeButtonText}>✕</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.demoButton, { backgroundColor: getColors(colorScheme).tint }]}
+          onPress={() => setShowCRUDDemo(true)}
+        >
+          <Text style={styles.demoButtonText}>CRUD Demo</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -607,6 +679,24 @@ export default function CreateMatchScreen() {
         {renderStepContent()}
         {renderNavigationFooter()}
       </ScrollView>
+
+      {/* CRUD Demo Modal */}
+      <Modal
+        visible={showCRUDDemo}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowCRUDDemo(false)}
+      >
+        <MatchCRUDDemo />
+        <TouchableOpacity 
+          style={[styles.closeCRUDDemoButton, {
+            backgroundColor: getColors(colorScheme).tint
+          }]}
+          onPress={() => setShowCRUDDemo(false)}
+        >
+          <Text style={styles.closeCRUDDemoButtonText}>Close Demo</Text>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -885,5 +975,29 @@ const styles = StyleSheet.create({
   progressFill: {
     height: '100%',
     borderRadius: 2,
+  },
+  demoButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
+  demoButtonText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  closeCRUDDemoButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  closeCRUDDemoButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

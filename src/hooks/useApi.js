@@ -25,43 +25,73 @@ export const useApi = () => {
   const getCurrentUser = useCallback(() => 
     apiCall(apiService.getCurrentUser), [apiCall]);
 
+  const getUserProfile = useCallback((userId) => 
+    apiCall(apiService.getUserProfile, userId), [apiCall]);
+
+  const createUserProfile = useCallback((profileData) => 
+    apiCall(apiService.createUserProfile, profileData), [apiCall]);
+
   const updateUserProfile = useCallback((profileData) => 
     apiCall(apiService.updateUserProfile, profileData), [apiCall]);
+
+  const deleteUserProfile = useCallback((userId) => 
+    apiCall(apiService.deleteUserProfile, userId), [apiCall]);
 
   const uploadProfilePhoto = useCallback((imageData) => 
     apiCall(apiService.uploadProfilePhoto, imageData), [apiCall]);
 
   // Posts API calls
-  const getFeedPosts = useCallback((page = 1, perPage = 20) => 
-    apiCall(apiService.getFeedPosts, page, perPage), [apiCall]);
+  const getPosts = useCallback((params = {}) => 
+    apiCall(apiService.getPosts, params), [apiCall]);
+
+  const getPostById = useCallback((postId) => 
+    apiCall(apiService.getPostById, postId), [apiCall]);
+
+  const getUserPosts = useCallback((userId) => 
+    apiCall(apiService.getUserPosts, userId), [apiCall]);
 
   const createPost = useCallback((postData) => 
     apiCall(apiService.createPost, postData), [apiCall]);
 
-  const togglePostLike = useCallback((postId) => 
-    apiCall(apiService.togglePostLike, postId), [apiCall]);
+  const updatePost = useCallback((postId, postData) => 
+    apiCall(apiService.updatePost, postId, postData), [apiCall]);
 
-  const addPostComment = useCallback((postId, commentData) => 
-    apiCall(apiService.addPostComment, postId, commentData), [apiCall]);
+  const deletePost = useCallback((postId) => 
+    apiCall(apiService.deletePost, postId), [apiCall]);
 
-  const getPostComments = useCallback((postId, page = 1, perPage = 20) => 
-    apiCall(apiService.getPostComments, postId, page, perPage), [apiCall]);
+  const likePost = useCallback((postId) => 
+    apiCall(apiService.likePost, postId), [apiCall]);
+
+  const unlikePost = useCallback((postId) => 
+    apiCall(apiService.unlikePost, postId), [apiCall]);
+
+  const commentOnPost = useCallback((postId, commentData) => 
+    apiCall(apiService.commentOnPost, postId, commentData), [apiCall]);
+
+  const sharePost = useCallback((postId) => 
+    apiCall(apiService.sharePost, postId), [apiCall]);
 
   // Matches API calls
-  const getMatches = useCallback((filters = {}) => 
-    apiCall(apiService.getMatches, filters), [apiCall]);
+  const getMatches = useCallback((params = {}) => 
+    apiCall(apiService.getMatches, params), [apiCall]);
+
+  const getMatchById = useCallback((matchId) => 
+    apiCall(apiService.getMatchById, matchId), [apiCall]);
 
   const createMatch = useCallback((matchData) => 
     apiCall(apiService.createMatch, matchData), [apiCall]);
+
+  const updateMatch = useCallback((matchId, matchData) => 
+    apiCall(apiService.updateMatch, matchId, matchData), [apiCall]);
+
+  const deleteMatch = useCallback((matchId) => 
+    apiCall(apiService.deleteMatch, matchId), [apiCall]);
 
   const joinMatch = useCallback((matchId) => 
     apiCall(apiService.joinMatch, matchId), [apiCall]);
 
   const leaveMatch = useCallback((matchId) => 
     apiCall(apiService.leaveMatch, matchId), [apiCall]);
-
-  const getLiveMatches = useCallback(() => 
-    apiCall(apiService.getLiveMatches), [apiCall]);
 
   // Messaging API calls
   const getConversations = useCallback(() => 
@@ -131,22 +161,32 @@ export const useApi = () => {
 
     // User APIs
     getCurrentUser,
+    getUserProfile,
+    createUserProfile,
     updateUserProfile,
+    deleteUserProfile,
     uploadProfilePhoto,
 
     // Posts APIs
-    getFeedPosts,
+    getPosts,
+    getPostById,
+    getUserPosts,
     createPost,
-    togglePostLike,
-    addPostComment,
-    getPostComments,
+    updatePost,
+    deletePost,
+    likePost,
+    unlikePost,
+    commentOnPost,
+    sharePost,
 
     // Matches APIs
     getMatches,
+    getMatchById,
     createMatch,
+    updateMatch,
+    deleteMatch,
     joinMatch,
     leaveMatch,
-    getLiveMatches,
 
     // Messaging APIs
     getConversations,

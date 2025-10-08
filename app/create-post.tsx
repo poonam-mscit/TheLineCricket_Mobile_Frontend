@@ -1,12 +1,15 @@
+import { PostCRUDDemo } from '@/components/PostCRUDDemo';
 import { Text } from '@/components/Themed';
 import { getColors } from '@/constants/Colors';
+import { useApi } from '@/src/hooks/useApi';
+import { useAuth } from '@/src/hooks/useAuth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
     ActivityIndicator, Alert,
-    Dimensions, Image, SafeAreaView,
+    Dimensions, Image, Modal, SafeAreaView,
     ScrollView,
     StatusBar,
     StyleSheet,
@@ -36,17 +39,22 @@ export default function CreatePostScreen() {
   const [isCreating, setIsCreating] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedMedia, setSelectedMedia] = useState<MediaItem[]>([]);
+  const [showCRUDDemo, setShowCRUDDemo] = useState(false);
   const colorScheme = useColorScheme();
   const { width } = Dimensions.get('window');
   
-  // Mock user data following existing patterns
+  // Use real user data from auth context
+  const { user: authUser, isAuthenticated } = useAuth();
+  const { createPost, loading, error } = useApi();
+  
+  // Real user data from database
   const user = {
-    id: '1',
-    fullName: 'Demo User',
-    username: 'demo_user',
-    email: 'demo@example.com',
-    avatar: 'https://via.placeholder.com/40',
-    verified: true
+    id: authUser?.id || '',
+    fullName: authUser?.fullName || '',
+    username: authUser?.username || '',
+    email: authUser?.email || '',
+    avatar: authUser?.avatar || '',
+    verified: authUser?.verified || false
   };
 
   // Form data state following existing patterns
@@ -85,12 +93,32 @@ export default function CreatePostScreen() {
     setIsCreating(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Validate required fields
+      if (!formData.caption.trim() && selectedMedia.length === 0) {
+        setErrors({ caption: 'Either caption or media is required' });
+        setIsCreating(false);
+        return;
+      }
+
+      // Prepare post data for API
+      const postData = {
+        content: formData.caption,
+        images: selectedMedia.filter(m => m.type === 'image').map(m => m.uri),
+        video: selectedMedia.find(m => m.type === 'video')?.uri || '',
+        location: formData.location,
+        visibility: formData.visibility,
+        post_type: formData.post_type,
+        hashtags: formData.hashtags,
+        mentions: formData.mentions,
+        author_id: user.id
+      };
+
+      // Call API to create post
+      const result = await createPost(postData);
       
-      // Create new post object
+      // Also store locally for immediate UI update
       const newPost = {
-        id: Date.now().toString(),
+        id: result.id || Date.now().toString(),
         content: formData.caption,
         images: selectedMedia.filter(m => m.type === 'image').map(m => m.uri),
         video: selectedMedia.find(m => m.type === 'video')?.uri || '',
@@ -139,6 +167,7 @@ export default function CreatePostScreen() {
         ]
       );
     } catch (error) {
+      console.error('Error creating post:', error);
       Alert.alert('Error', 'Failed to create post. Please try again.');
     } finally {
       setIsCreating(false);
@@ -232,6 +261,12 @@ export default function CreatePostScreen() {
           onPress={handleCancel}
         >
           <Text style={styles.closeButtonText}>✕</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.demoButton, { backgroundColor: getColors(colorScheme).tint }]}
+          onPress={() => setShowCRUDDemo(true)}
+        >
+          <Text style={styles.demoButtonText}>CRUD Demo</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -467,6 +502,24 @@ export default function CreatePostScreen() {
         {renderVisibilitySection()}
         {renderSubmitButton()}
       </ScrollView>
+
+      {/* CRUD Demo Modal */}
+      <Modal
+        visible={showCRUDDemo}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowCRUDDemo(false)}
+      >
+        <PostCRUDDemo />
+        <TouchableOpacity 
+          style={[styles.closeCRUDDemoButton, {
+            backgroundColor: getColors(colorScheme).tint
+          }]}
+          onPress={() => setShowCRUDDemo(false)}
+        >
+          <Text style={styles.closeCRUDDemoButtonText}>Close Demo</Text>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -719,5 +772,29 @@ const styles = StyleSheet.create({
   mediaTypeText: {
     color: 'white',
     fontSize: 10,
+  },
+  demoButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
+  demoButtonText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  closeCRUDDemoButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  closeCRUDDemoButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

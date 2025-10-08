@@ -1,8 +1,7 @@
 import { Text } from '@/components/Themed';
-import { useColorScheme } from 'react-native';
 import { getColors } from '@/constants/Colors';
 import React from 'react';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native';
 
 interface UserProfile {
   id: string;
@@ -38,9 +37,13 @@ interface ProfileCardProps {
   onFollow: (userId: string) => void;
   onUnfollow: (userId: string) => void;
   onEdit: (userId: string) => void;
+  onDelete: (userId: string) => void;
   onMessage: (userId: string) => void;
   onViewPosts: (userId: string) => void;
   onViewMatches: (userId: string) => void;
+  isLoading?: boolean;
+  isEditing?: boolean;
+  isDeleting?: boolean;
 }
 
 export function ProfileCard({ 
@@ -48,9 +51,13 @@ export function ProfileCard({
   onFollow, 
   onUnfollow, 
   onEdit, 
+  onDelete,
   onMessage, 
   onViewPosts, 
-  onViewMatches 
+  onViewMatches,
+  isLoading = false,
+  isEditing = false,
+  isDeleting = false
 }: ProfileCardProps) {
   const colorScheme = useColorScheme();
 
@@ -121,14 +128,31 @@ export function ProfileCard({
         {/* Action Buttons */}
         <View style={styles.actionButtons}>
           {profile.isOwnProfile ? (
-            <TouchableOpacity 
-              style={[styles.editButton, { 
-                backgroundColor: getColors(colorScheme).tint 
-              }]}
-              onPress={() => onEdit(profile.id)}
-            >
-              <Text style={styles.editButtonText}>Edit Profile</Text>
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity 
+                style={[styles.editButton, { 
+                  backgroundColor: getColors(colorScheme).tint 
+                }]}
+                onPress={() => onEdit(profile.id)}
+                disabled={isLoading || isEditing}
+              >
+                <Text style={styles.editButtonText}>
+                  {isEditing ? 'Editing...' : 'Edit Profile'}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.deleteButton, { 
+                  backgroundColor: '#ff4757' 
+                }]}
+                onPress={() => onDelete(profile.id)}
+                disabled={isLoading || isDeleting}
+              >
+                <Text style={styles.deleteButtonText}>
+                  {isDeleting ? 'Deleting...' : 'Delete Profile'}
+                </Text>
+              </TouchableOpacity>
+            </>
           ) : (
             <>
               <TouchableOpacity 
@@ -452,6 +476,16 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   editButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  deleteButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  deleteButtonText: {
     color: 'white',
     fontSize: 14,
     fontWeight: '600',

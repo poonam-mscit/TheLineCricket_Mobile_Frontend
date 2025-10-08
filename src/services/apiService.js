@@ -10,7 +10,27 @@ class ApiService {
   // Get current user profile
   async getCurrentUser() {
     try {
-      const response = await apiClient.get('/auth/me');
+      const response = await apiClient.get('/api/users/me');
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Get user profile by ID
+  async getUserProfile(userId) {
+    try {
+      const response = await apiClient.get(`/api/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Create user profile
+  async createUserProfile(profileData) {
+    try {
+      const response = await apiClient.post('/api/users', profileData);
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -20,7 +40,195 @@ class ApiService {
   // Update user profile
   async updateUserProfile(profileData) {
     try {
-      const response = await apiClient.put('/users/profile', profileData);
+      const response = await apiClient.put('/api/users/profile', profileData);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Delete user profile
+  async deleteUserProfile(userId) {
+    try {
+      const response = await apiClient.delete(`/api/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Match Management APIs
+   */
+
+  // Get all matches
+  async getMatches(params = {}) {
+    try {
+      const response = await apiClient.get('/api/matches', { params });
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Get match by ID
+  async getMatchById(matchId) {
+    try {
+      const response = await apiClient.get(`/api/matches/${matchId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Create match
+  async createMatch(matchData) {
+    try {
+      const response = await apiClient.post('/api/matches', matchData);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Update match
+  async updateMatch(matchId, matchData) {
+    try {
+      const response = await apiClient.put(`/api/matches/${matchId}`, matchData);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Delete match
+  async deleteMatch(matchId) {
+    try {
+      const response = await apiClient.delete(`/api/matches/${matchId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Join match
+  async joinMatch(matchId) {
+    try {
+      const response = await apiClient.post(`/api/matches/${matchId}/join`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Leave match
+  async leaveMatch(matchId) {
+    try {
+      const response = await apiClient.post(`/api/matches/${matchId}/leave`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  /**
+   * Post Management APIs
+   */
+
+  // Get all posts
+  async getPosts(params = {}) {
+    try {
+      const response = await apiClient.get('/api/posts', { params });
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Get post by ID
+  async getPostById(postId) {
+    try {
+      const response = await apiClient.get(`/api/posts/${postId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Get user posts
+  async getUserPosts(userId) {
+    try {
+      const response = await apiClient.get(`/api/users/${userId}/posts`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Create post
+  async createPost(postData) {
+    try {
+      const response = await apiClient.post('/api/posts', postData);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Update post
+  async updatePost(postId, postData) {
+    try {
+      const response = await apiClient.put(`/api/posts/${postId}`, postData);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Delete post
+  async deletePost(postId) {
+    try {
+      const response = await apiClient.delete(`/api/posts/${postId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Like post
+  async likePost(postId) {
+    try {
+      const response = await apiClient.post(`/api/posts/${postId}/like`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Unlike post
+  async unlikePost(postId) {
+    try {
+      const response = await apiClient.delete(`/api/posts/${postId}/like`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Comment on post
+  async commentOnPost(postId, commentData) {
+    try {
+      const response = await apiClient.post(`/api/posts/${postId}/comments`, commentData);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Share post
+  async sharePost(postId) {
+    try {
+      const response = await apiClient.post(`/api/posts/${postId}/share`);
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));

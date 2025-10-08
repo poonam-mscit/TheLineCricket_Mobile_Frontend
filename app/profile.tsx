@@ -20,12 +20,17 @@ import {
 } from 'react-native';
 
 // Import existing components
+import { APITestComponent } from '@/components/APITestComponent';
+import { ProfileCRUDDemo } from '@/components/ProfileCRUDDemo';
 import { AchievementsEditor } from '@/components/ui/AchievementsEditor';
 import { AwardsEditor } from '@/components/ui/AwardsEditor';
 import { ExperienceEditor } from '@/components/ui/ExperienceEditor';
 import { InstagramBottomNav } from '@/components/ui/InstagramBottomNav';
 import { PageTypeSelector } from '@/components/ui/PageTypeSelector';
 import { SkillsEditor } from '@/components/ui/SkillsEditor';
+
+// Import hooks
+import { useProfile } from '@/src/hooks/useProfile';
 
 // Import page management utilities
 import { AcademyData, CommunityData, PageType, UserPage, VenueData } from '@/types/pages';
@@ -46,118 +51,101 @@ export default function ProfileScreen() {
   const [userPages, setUserPages] = useState<UserPage[]>([]);
   const [isEditingPage, setIsEditingPage] = useState(false);
   const [editingPageData, setEditingPageData] = useState<any>(null);
+  const [showCRUDDemo, setShowCRUDDemo] = useState(false);
+  const [showProfileForm, setShowProfileForm] = useState(false);
+  const [showAPITest, setShowAPITest] = useState(false);
   const colorScheme = useColorScheme();
   const { width } = Dimensions.get('window');
   
-  // Mock user data - enhanced for profile screen
+  // Profile CRUD functionality
+  const {
+    currentUser,
+    profile,
+    loading: profileLoading,
+    errors: profileErrors,
+    isLoading: isProfileLoading,
+    hasError: hasProfileError,
+    isOwnProfile,
+    loadCurrentUser,
+    createProfile,
+    updateProfile,
+    deleteProfile,
+    clearProfileError
+  } = useProfile();
+  
+  // Use real data from database instead of hardcoded data
   const [user, setUser] = useState({
-    id: '1',
-    fullName: 'Demo User',
-    username: 'demo_user',
-    email: 'demo@example.com',
-    avatar: 'https://via.placeholder.com/100',
-    bio: 'Passionate cricket player and coach. Love the game!',
-    location: 'Mumbai, India',
-    organization: 'Mumbai Cricket Academy',
-    verified: true,
-    joinedDate: new Date('2023-01-01')
+    id: currentUser?.id || '',
+    fullName: currentUser?.fullName || profile?.fullName || '',
+    username: currentUser?.username || profile?.username || '',
+    email: currentUser?.email || profile?.email || '',
+    avatar: currentUser?.avatar || profile?.avatar || '',
+    bio: currentUser?.bio || profile?.bio || '',
+    location: currentUser?.location || profile?.location || '',
+    organization: currentUser?.organization || profile?.organization || '',
+    verified: currentUser?.verified || profile?.verified || false,
+    joinedDate: currentUser?.joinedDate || profile?.joinedDate || new Date()
   });
 
-  // Enhanced user stats
+  // Enhanced user stats from database
   const [userStats, setUserStats] = useState({
-    posts: 25,
-    matches: 15,
-    followers: 150,
-    following: 200,
-    wins: 12,
-    losses: 3,
-    winRate: 80,
-    totalRuns: 450,
-    totalWickets: 25,
-    bestScore: 85,
-    bestBowling: '5/25',
-    achievements: 5
+    posts: profile?.stats?.posts || 0,
+    matches: profile?.stats?.matches || 0,
+    followers: profile?.stats?.followers || 0,
+    following: profile?.stats?.following || 0,
+    wins: profile?.stats?.wins || 0,
+    losses: profile?.stats?.losses || 0,
+    winRate: profile?.stats?.winRate || 0,
+    totalRuns: profile?.stats?.totalRuns || 0,
+    totalWickets: profile?.stats?.totalWickets || 0,
+    bestScore: profile?.stats?.bestScore || 0,
+    bestBowling: profile?.stats?.bestBowling || '0/0',
+    achievements: profile?.achievements?.length || 0
   });
 
-  // Cricket statistics
+  // Cricket statistics from database
   const [cricketStats, setCricketStats] = useState({
     batting: {
-      totalRuns: 1250,
-      matches: 25,
-      centuries: 2,
-      halfCenturies: 8,
-      average: 45.5,
-      highestScore: 156,
-      strikeRate: 125.5
+      totalRuns: profile?.stats?.totalRuns || 0,
+      matches: profile?.stats?.matches || 0,
+      centuries: profile?.stats?.centuries || 0,
+      halfCenturies: profile?.stats?.halfCenturies || 0,
+      average: profile?.stats?.battingAverage || 0,
+      highestScore: profile?.stats?.highestScore || 0,
+      strikeRate: profile?.stats?.strikeRate || 0
     },
     bowling: {
-      matches: 25,
-      overs: 45.2,
-      wickets: 35,
-      hatTricks: 1,
-      bestFigures: '5/25',
-      average: 18.5,
-      economy: 4.2
+      matches: profile?.stats?.matches || 0,
+      overs: profile?.stats?.overs || 0,
+      wickets: profile?.stats?.wickets || 0,
+      hatTricks: profile?.stats?.hatTricks || 0,
+      bestFigures: profile?.stats?.bestBowling || '0/0',
+      average: profile?.stats?.bowlingAverage || 0,
+      economy: profile?.stats?.economy || 0
     },
     fielding: {
-      matches: 25,
-      catches: 18,
-      stumpings: 3,
-      runOuts: 5
+      matches: profile?.stats?.matches || 0,
+      catches: profile?.stats?.catches || 0,
+      stumpings: profile?.stats?.stumpings || 0,
+      runOuts: profile?.stats?.runOuts || 0
     }
   });
 
-  // Skills rating
+  // Skills rating from database
   const [skills, setSkills] = useState({
-    batting: 85,
-    bowling: 70,
-    fielding: 80
+    batting: profile?.skills?.batting || 0,
+    bowling: profile?.skills?.bowling || 0,
+    fielding: profile?.skills?.fielding || 0
   });
 
-  // Experience data
-  const [experience, setExperience] = useState([
-    {
-      id: '1',
-      title: 'Senior Cricket Coach',
-      organization: 'Mumbai Cricket Academy',
-      duration: '2022 - Present',
-      description: 'Coaching junior and senior teams'
-    },
-    {
-      id: '2',
-      title: 'Professional Cricketer',
-      organization: 'Mumbai Indians',
-      duration: '2018 - 2022',
-      description: 'Played in IPL and domestic cricket'
-    }
-  ]);
+  // Experience data from database
+  const [experience, setExperience] = useState(profile?.experience || []);
 
-  // Achievements data
-  const [achievements, setAchievements] = useState([
-    {
-      id: '1',
-      title: 'Best Batsman 2023',
-      year: '2023',
-      description: 'Awarded for outstanding batting performance'
-    },
-    {
-      id: '2',
-      title: 'Team Captain',
-      year: '2022',
-      description: 'Led team to championship victory'
-    }
-  ]);
+  // Achievements data from database
+  const [achievements, setAchievements] = useState(profile?.achievements || []);
 
-  // Awards data
-  const [awards, setAwards] = useState([
-    {
-      id: '1',
-      title: 'Player of the Year',
-      organization: 'Cricket Association',
-      year: '2023',
-      description: 'Outstanding performance throughout the year'
-    }
-  ]);
+  // Awards data from database
+  const [awards, setAwards] = useState(profile?.awards || []);
 
   // Upcoming matches
   const [upcomingMatches, setUpcomingMatches] = useState([
@@ -202,6 +190,76 @@ export default function ProfileScreen() {
     loadUserPostsFromStorage();
     loadUserPagesFromStorage();
   }, []);
+
+  // Update local state when profile data changes
+  useEffect(() => {
+    if (currentUser || profile) {
+      setUser({
+        id: currentUser?.id || profile?.id || '',
+        fullName: currentUser?.fullName || profile?.fullName || '',
+        username: currentUser?.username || profile?.username || '',
+        email: currentUser?.email || profile?.email || '',
+        avatar: currentUser?.avatar || profile?.avatar || '',
+        bio: currentUser?.bio || profile?.bio || '',
+        location: currentUser?.location || profile?.location || '',
+        organization: currentUser?.organization || profile?.organization || '',
+        verified: currentUser?.verified || profile?.verified || false,
+        joinedDate: currentUser?.joinedDate || profile?.joinedDate || new Date()
+      });
+
+      setUserStats({
+        posts: profile?.stats?.posts || 0,
+        matches: profile?.stats?.matches || 0,
+        followers: profile?.stats?.followers || 0,
+        following: profile?.stats?.following || 0,
+        wins: profile?.stats?.wins || 0,
+        losses: profile?.stats?.losses || 0,
+        winRate: profile?.stats?.winRate || 0,
+        totalRuns: profile?.stats?.totalRuns || 0,
+        totalWickets: profile?.stats?.totalWickets || 0,
+        bestScore: profile?.stats?.bestScore || 0,
+        bestBowling: profile?.stats?.bestBowling || '0/0',
+        achievements: profile?.achievements?.length || 0
+      });
+
+      setCricketStats({
+        batting: {
+          totalRuns: profile?.stats?.totalRuns || 0,
+          matches: profile?.stats?.matches || 0,
+          centuries: profile?.stats?.centuries || 0,
+          halfCenturies: profile?.stats?.halfCenturies || 0,
+          average: profile?.stats?.battingAverage || 0,
+          highestScore: profile?.stats?.highestScore || 0,
+          strikeRate: profile?.stats?.strikeRate || 0
+        },
+        bowling: {
+          matches: profile?.stats?.matches || 0,
+          overs: profile?.stats?.overs || 0,
+          wickets: profile?.stats?.wickets || 0,
+          hatTricks: profile?.stats?.hatTricks || 0,
+          bestFigures: profile?.stats?.bestBowling || '0/0',
+          average: profile?.stats?.bowlingAverage || 0,
+          economy: profile?.stats?.economy || 0
+        },
+        fielding: {
+          matches: profile?.stats?.matches || 0,
+          catches: profile?.stats?.catches || 0,
+          stumpings: profile?.stats?.stumpings || 0,
+          runOuts: profile?.stats?.runOuts || 0
+        }
+      });
+
+      setSkills({
+        batting: profile?.skills?.batting || 0,
+        bowling: profile?.skills?.bowling || 0,
+        fielding: profile?.skills?.fielding || 0
+      });
+
+      setExperience(profile?.experience || []);
+      setAchievements(profile?.achievements || []);
+      setAwards(profile?.awards || []);
+    }
+  }, [currentUser, profile]);
 
   const loadUserPagesFromStorage = async () => {
     try {
@@ -2351,6 +2409,40 @@ export default function ProfileScreen() {
       >
         {renderProfileContent()}
         
+        {/* CRUD Demo Section */}
+        <View style={[styles.crudDemoSection, {
+          backgroundColor: getColors(colorScheme).card,
+          borderColor: getColors(colorScheme).border
+        }]}>
+          <Text style={[styles.crudDemoTitle, {
+            color: getColors(colorScheme).text
+          }]}>
+            Profile CRUD Operations
+          </Text>
+          <Text style={[styles.crudDemoDescription, {
+            color: getColors(colorScheme).text
+          }]}>
+            Test Create, Read, Update, Delete operations for user profiles
+          </Text>
+          <TouchableOpacity 
+            style={[styles.crudDemoButton, {
+              backgroundColor: getColors(colorScheme).tint
+            }]}
+            onPress={() => setShowCRUDDemo(true)}
+          >
+            <Text style={styles.crudDemoButtonText}>Open CRUD Demo</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.crudDemoButton, {
+              backgroundColor: '#ffa502'
+            }]}
+            onPress={() => setShowAPITest(true)}
+          >
+            <Text style={styles.crudDemoButtonText}>Test API Connection</Text>
+          </TouchableOpacity>
+        </View>
+        
       </ScrollView>
       
       {renderBottomNavigation()}
@@ -2389,6 +2481,42 @@ export default function ProfileScreen() {
         onClose={() => setShowPageTypeSelector(false)}
         onSelectType={handlePageTypeSelect}
       />
+      
+      {/* CRUD Demo Modal */}
+      <Modal
+        visible={showCRUDDemo}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowCRUDDemo(false)}
+      >
+        <ProfileCRUDDemo />
+        <TouchableOpacity 
+          style={[styles.closeCRUDDemoButton, {
+            backgroundColor: getColors(colorScheme).tint
+          }]}
+          onPress={() => setShowCRUDDemo(false)}
+        >
+          <Text style={styles.closeCRUDDemoButtonText}>Close Demo</Text>
+        </TouchableOpacity>
+      </Modal>
+      
+      {/* API Test Modal */}
+      <Modal
+        visible={showAPITest}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowAPITest(false)}
+      >
+        <APITestComponent />
+        <TouchableOpacity 
+          style={[styles.closeCRUDDemoButton, {
+            backgroundColor: getColors(colorScheme).tint
+          }]}
+          onPress={() => setShowAPITest(false)}
+        >
+          <Text style={styles.closeCRUDDemoButtonText}>Close Test</Text>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -3072,6 +3200,49 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
     backgroundColor: 'rgba(0,0,0,0.05)',
+  },
+  
+  // CRUD Demo styles
+  crudDemoSection: {
+    margin: 16,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  crudDemoTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  crudDemoDescription: {
+    fontSize: 14,
+    opacity: 0.7,
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  crudDemoButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  crudDemoButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  closeCRUDDemoButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  closeCRUDDemoButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
   dropdownArrow: {
     fontSize: 12,
