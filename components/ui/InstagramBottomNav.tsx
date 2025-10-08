@@ -170,6 +170,8 @@ export function InstagramBottomNav({
             onPress={() => {
               if (item.key === 'create') {
                 handleCreatePress();
+              } else if (item.key === 'search') {
+                router.push('/search');
               } else {
                 onSectionChange(item.key);
               }

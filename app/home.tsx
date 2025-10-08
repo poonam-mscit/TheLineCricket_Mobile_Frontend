@@ -324,6 +324,8 @@ export default function HomeScreen() {
       onSectionChange={(section) => {
         if (section === 'profile') {
           router.push('/profile');
+        } else if (section === 'search') {
+          router.push('/search');
         } else {
           setActiveSection(section);
         }
