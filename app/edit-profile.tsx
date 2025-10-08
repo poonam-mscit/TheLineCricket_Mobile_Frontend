@@ -4,13 +4,43 @@ import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator, Alert,
-    Dimensions, Image, SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity, useColorScheme, View
+  ActivityIndicator, Alert,
+  Dimensions, Image, SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity, useColorScheme, View
 } from 'react-native';
+
+interface ValidationRules {
+  fullName: { required: boolean; minLength: number; maxLength: number };
+  username: { required: boolean; minLength: number; maxLength: number; pattern: RegExp };
+  email: { required: boolean; pattern: RegExp };
+  age: { required: boolean; min: number; max: number };
+  bio: { maxLength: number };
+  contact: { pattern: RegExp };
+  battingStats: {
+    totalRuns: { min: number; max: number };
+    matches: { min: number; max: number };
+    centuries: { min: number; max: number };
+    halfCenturies: { min: number; max: number };
+    average: { min: number; max: number };
+    highest: { min: number; max: number };
+  };
+  bowlingStats: {
+    matches: { min: number; max: number };
+    overs: { min: number; max: number };
+    wickets: { min: number; max: number };
+    hatTricks: { min: number; max: number };
+    average: { min: number; max: number };
+  };
+  fieldingStats: {
+    matches: { min: number; max: number };
+    catches: { min: number; max: number };
+    stumpings: { min: number; max: number };
+    runOuts: { min: number; max: number };
+  };
+}
 
 interface EditProfileData {
   // Basic Information
@@ -85,11 +115,43 @@ interface EditProfileData {
   }>;
 }
 
+// Validation rules configuration
+const validationRules: ValidationRules = {
+  fullName: { required: true, minLength: 2, maxLength: 50 },
+  username: { required: true, minLength: 3, maxLength: 20, pattern: /^[a-zA-Z0-9_]+$/ },
+  email: { required: true, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
+  age: { required: true, min: 13, max: 100 },
+  bio: { maxLength: 500 },
+  contact: { pattern: /^[\+]?[1-9][\d]{0,15}$/ },
+  battingStats: {
+    totalRuns: { min: 0, max: 100000 },
+    matches: { min: 0, max: 1000 },
+    centuries: { min: 0, max: 100 },
+    halfCenturies: { min: 0, max: 500 },
+    average: { min: 0, max: 200 },
+    highest: { min: 0, max: 500 }
+  },
+  bowlingStats: {
+    matches: { min: 0, max: 1000 },
+    overs: { min: 0, max: 10000 },
+    wickets: { min: 0, max: 1000 },
+    hatTricks: { min: 0, max: 50 },
+    average: { min: 0, max: 100 }
+  },
+  fieldingStats: {
+    matches: { min: 0, max: 1000 },
+    catches: { min: 0, max: 500 },
+    stumpings: { min: 0, max: 200 },
+    runOuts: { min: 0, max: 100 }
+  }
+};
+
 export default function EditProfileScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [hasChanges, setHasChanges] = useState(false);
   const [activeStatsTab, setActiveStatsTab] = useState<'batting' | 'bowling' | 'fielding'>('batting');
+  const [isValidating, setIsValidating] = useState(false);
   const colorScheme = useColorScheme();
   const { width } = Dimensions.get('window');
   
@@ -183,14 +245,122 @@ export default function EditProfileScreen() {
     ]
   });
 
+  // Validation helper functions
+  const validateField = (field: string, value: any): string => {
+    const rules = validationRules[field as keyof ValidationRules];
+    if (!rules) return '';
+
+    // Required field validation
+    if (rules.required && (!value || value.toString().trim() === '')) {
+      return `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
+    }
+
+    // String length validation
+    if (typeof value === 'string') {
+      if (rules.minLength && value.length < rules.minLength) {
+        return `${field.charAt(0).toUpperCase() + field.slice(1)} must be at least ${rules.minLength} characters`;
+      }
+      if (rules.maxLength && value.length > rules.maxLength) {
+        return `${field.charAt(0).toUpperCase() + field.slice(1)} must be no more than ${rules.maxLength} characters`;
+      }
+    }
+
+    // Number range validation
+    if (typeof value === 'number') {
+      if (rules.min !== undefined && value < rules.min) {
+        return `${field.charAt(0).toUpperCase() + field.slice(1)} must be at least ${rules.min}`;
+      }
+      if (rules.max !== undefined && value > rules.max) {
+        return `${field.charAt(0).toUpperCase() + field.slice(1)} must be no more than ${rules.max}`;
+      }
+    }
+
+    // Pattern validation
+    if (rules.pattern && typeof value === 'string') {
+      if (!rules.pattern.test(value)) {
+        if (field === 'username') {
+          return 'Username can only contain letters, numbers, and underscores';
+        }
+        if (field === 'email') {
+          return 'Please enter a valid email address';
+        }
+        if (field === 'contact') {
+          return 'Please enter a valid phone number';
+        }
+        return `${field.charAt(0).toUpperCase() + field.slice(1)} format is invalid`;
+      }
+    }
+
+    return '';
+  };
+
+  const validateNestedField = (parent: string, field: string, value: any): string => {
+    const rules = validationRules[parent as keyof ValidationRules];
+    if (!rules || typeof rules !== 'object' || !rules[field as keyof typeof rules]) {
+      return '';
+    }
+
+    const fieldRules = rules[field as keyof typeof rules] as any;
+    if (typeof value === 'number') {
+      if (fieldRules.min !== undefined && value < fieldRules.min) {
+        return `${field.charAt(0).toUpperCase() + field.slice(1)} must be at least ${fieldRules.min}`;
+      }
+      if (fieldRules.max !== undefined && value > fieldRules.max) {
+        return `${field.charAt(0).toUpperCase() + field.slice(1)} must be no more than ${fieldRules.max}`;
+      }
+    }
+
+    return '';
+  };
+
+  const validateForm = (): boolean => {
+    setIsValidating(true);
+    const newErrors: Record<string, string> = {};
+
+    // Validate basic fields
+    const basicFields: (keyof EditProfileData)[] = ['fullName', 'username', 'email', 'age', 'bio', 'contact'];
+    basicFields.forEach(field => {
+      const error = validateField(field, formData[field]);
+      if (error) {
+        newErrors[field] = error;
+      }
+    });
+
+    // Validate cricket stats
+    Object.entries(formData.battingStats).forEach(([key, value]) => {
+      const error = validateNestedField('battingStats', key, value);
+      if (error) {
+        newErrors[`battingStats.${key}`] = error;
+      }
+    });
+
+    Object.entries(formData.bowlingStats).forEach(([key, value]) => {
+      const error = validateNestedField('bowlingStats', key, value);
+      if (error) {
+        newErrors[`bowlingStats.${key}`] = error;
+      }
+    });
+
+    Object.entries(formData.fieldingStats).forEach(([key, value]) => {
+      const error = validateNestedField('fieldingStats', key, value);
+      if (error) {
+        newErrors[`fieldingStats.${key}`] = error;
+      }
+    });
+
+    setErrors(newErrors);
+    setIsValidating(false);
+    return Object.keys(newErrors).length === 0;
+  };
+
   // Event handlers following existing patterns
   const handleInputChange = (field: keyof EditProfileData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setHasChanges(true);
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+    
+    // Real-time validation
+    const error = validateField(field, value);
+    setErrors(prev => ({ ...prev, [field]: error }));
   };
 
   const handleNestedChange = (parent: keyof EditProfileData, field: string, value: any) => {
@@ -202,6 +372,10 @@ export default function EditProfileScreen() {
       }
     }));
     setHasChanges(true);
+    
+    // Real-time validation for nested fields
+    const error = validateNestedField(parent, field, value);
+    setErrors(prev => ({ ...prev, [`${parent}.${field}`]: error }));
   };
 
   const handleArrayItemChange = (parent: keyof EditProfileData, index: number, field: string, value: any) => {
@@ -246,6 +420,16 @@ export default function EditProfileScreen() {
   };
 
   const handleSave = async () => {
+    // Validate form before saving
+    if (!validateForm()) {
+      Alert.alert(
+        'Validation Error',
+        'Please fix all errors before saving.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     setIsSaving(true);
     
     try {
@@ -315,15 +499,19 @@ export default function EditProfileScreen() {
         <TouchableOpacity 
           style={[
             styles.saveButton,
-            { backgroundColor: hasChanges ? '#10B981' : '#9CA3AF' }
+            { 
+              backgroundColor: hasChanges && Object.keys(errors).length === 0 ? '#10B981' : '#9CA3AF'
+            }
           ]}
           onPress={handleSave}
-          disabled={!hasChanges || isSaving}
+          disabled={!hasChanges || isSaving || Object.keys(errors).length > 0}
         >
           {isSaving ? (
             <ActivityIndicator color="white" size="small" />
           ) : (
-            <Text style={styles.saveButtonText}>Save</Text>
+            <Text style={styles.saveButtonText}>
+              {Object.keys(errors).length > 0 ? 'Fix Errors' : 'Save'}
+            </Text>
           )}
         </TouchableOpacity>
       </View>
@@ -421,7 +609,7 @@ export default function EditProfileScreen() {
               { 
                 backgroundColor: getColors(colorScheme).background,
                 color: getColors(colorScheme).text,
-                borderColor: getColors(colorScheme).border
+                borderColor: errors.bio ? getColors(colorScheme).error : getColors(colorScheme).border
               }
             ]}
             placeholder="Tell us about yourself..."
@@ -430,7 +618,19 @@ export default function EditProfileScreen() {
             onChangeText={(value) => handleInputChange('bio', value)}
             multiline
             numberOfLines={4}
+            maxLength={500}
           />
+          <View style={styles.characterCounter}>
+            <Text style={[
+              styles.characterCount,
+              { 
+                color: formData.bio.length > 450 ? getColors(colorScheme).error : getColors(colorScheme).text 
+              }
+            ]}>
+              {formData.bio.length}/500
+            </Text>
+          </View>
+          {errors.bio && <Text style={[styles.errorText, { color: getColors(colorScheme).error }]}>{errors.bio}</Text>}
         </View>
 
         <View style={styles.rowContainer}>
@@ -558,212 +758,356 @@ export default function EditProfileScreen() {
 
   const renderCricketStatsSection = () => (
     <View style={[styles.section, { backgroundColor: getColors(colorScheme).card }]}>
-      <Text style={[styles.sectionTitle, { color: getColors(colorScheme).text }]}>
-        Cricket Statistics
-      </Text>
+      <View style={styles.statsHeader}>
+        <Text style={[styles.sectionTitle, { color: getColors(colorScheme).text }]}>
+          Cricket Statistics
+        </Text>
+        <Text style={[styles.sectionSubtitle, { color: getColors(colorScheme).text }]}>
+          Update your cricket performance data
+        </Text>
+      </View>
       
       <View style={styles.tabsContainer}>
         <TouchableOpacity
           style={[
             styles.tab,
-            { backgroundColor: activeStatsTab === 'batting' ? '#F97316' : getColors(colorScheme).background }
+            { 
+              backgroundColor: activeStatsTab === 'batting' ? '#F97316' : 'transparent',
+              borderColor: activeStatsTab === 'batting' ? '#F97316' : getColors(colorScheme).border
+            }
           ]}
           onPress={() => setActiveStatsTab('batting')}
         >
+          <Text style={styles.tabIcon}>🏏</Text>
           <Text style={[
             styles.tabText,
             { color: activeStatsTab === 'batting' ? 'white' : getColors(colorScheme).text }
           ]}>
-            🏏 Batting
+            Batting
           </Text>
         </TouchableOpacity>
         
         <TouchableOpacity
           style={[
             styles.tab,
-            { backgroundColor: activeStatsTab === 'bowling' ? '#3B82F6' : getColors(colorScheme).background }
+            { 
+              backgroundColor: activeStatsTab === 'bowling' ? '#3B82F6' : 'transparent',
+              borderColor: activeStatsTab === 'bowling' ? '#3B82F6' : getColors(colorScheme).border
+            }
           ]}
           onPress={() => setActiveStatsTab('bowling')}
         >
+          <Text style={styles.tabIcon}>🎯</Text>
           <Text style={[
             styles.tabText,
             { color: activeStatsTab === 'bowling' ? 'white' : getColors(colorScheme).text }
           ]}>
-            🎯 Bowling
+            Bowling
           </Text>
         </TouchableOpacity>
         
         <TouchableOpacity
           style={[
             styles.tab,
-            { backgroundColor: activeStatsTab === 'fielding' ? '#10B981' : getColors(colorScheme).background }
+            { 
+              backgroundColor: activeStatsTab === 'fielding' ? '#10B981' : 'transparent',
+              borderColor: activeStatsTab === 'fielding' ? '#10B981' : getColors(colorScheme).border
+            }
           ]}
           onPress={() => setActiveStatsTab('fielding')}
         >
+          <Text style={styles.tabIcon}>🧤</Text>
           <Text style={[
             styles.tabText,
             { color: activeStatsTab === 'fielding' ? 'white' : getColors(colorScheme).text }
           ]}>
-            🧤 Fielding
+            Fielding
           </Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.statsContainer}>
         {activeStatsTab === 'batting' && (
-          <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Total Runs</Text>
-              <TextInput
-                style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
-                value={formData.battingStats.totalRuns.toString()}
-                onChangeText={(value) => handleNestedChange('battingStats', 'totalRuns', parseInt(value) || 0)}
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Matches</Text>
-              <TextInput
-                style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
-                value={formData.battingStats.matches.toString()}
-                onChangeText={(value) => handleNestedChange('battingStats', 'matches', parseInt(value) || 0)}
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Centuries</Text>
-              <TextInput
-                style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
-                value={formData.battingStats.centuries.toString()}
-                onChangeText={(value) => handleNestedChange('battingStats', 'centuries', parseInt(value) || 0)}
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Half Centuries</Text>
-              <TextInput
-                style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
-                value={formData.battingStats.halfCenturies.toString()}
-                onChangeText={(value) => handleNestedChange('battingStats', 'halfCenturies', parseInt(value) || 0)}
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Average</Text>
-              <TextInput
-                style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
-                value={formData.battingStats.average.toString()}
-                onChangeText={(value) => handleNestedChange('battingStats', 'average', parseFloat(value) || 0)}
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Highest Score</Text>
-              <TextInput
-                style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
-                value={formData.battingStats.highest.toString()}
-                onChangeText={(value) => handleNestedChange('battingStats', 'highest', parseInt(value) || 0)}
-                keyboardType="numeric"
-              />
+          <View style={styles.statsContent}>
+            <View style={styles.statsGrid}>
+              <View style={styles.statCard}>
+                <View style={styles.statHeader}>
+                  <Text style={styles.statIcon}>🏏</Text>
+                  <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Total Runs</Text>
+                </View>
+                <View style={styles.statInputContainer}>
+                  <TextInput
+                    style={[
+                      styles.statInput, 
+                      { 
+                        backgroundColor: getColors(colorScheme).background, 
+                        color: getColors(colorScheme).text, 
+                        borderColor: errors['battingStats.totalRuns'] ? getColors(colorScheme).error : getColors(colorScheme).border 
+                      }
+                    ]}
+                    value={formData.battingStats.totalRuns.toString()}
+                    onChangeText={(value) => handleNestedChange('battingStats', 'totalRuns', parseInt(value) || 0)}
+                    keyboardType="numeric"
+                    placeholder="0"
+                  />
+                  {errors['battingStats.totalRuns'] && (
+                    <Text style={[styles.statErrorText, { color: getColors(colorScheme).error }]}>
+                      {errors['battingStats.totalRuns']}
+                    </Text>
+                  )}
+                </View>
+              </View>
+
+              <View style={styles.statCard}>
+                <View style={styles.statHeader}>
+                  <Text style={styles.statIcon}>📊</Text>
+                  <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Matches</Text>
+                </View>
+                <View style={styles.statInputContainer}>
+                  <TextInput
+                    style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
+                    value={formData.battingStats.matches.toString()}
+                    onChangeText={(value) => handleNestedChange('battingStats', 'matches', parseInt(value) || 0)}
+                    keyboardType="numeric"
+                    placeholder="0"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.statCard}>
+                <View style={styles.statHeader}>
+                  <Text style={styles.statIcon}>💯</Text>
+                  <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Centuries</Text>
+                </View>
+                <View style={styles.statInputContainer}>
+                  <TextInput
+                    style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
+                    value={formData.battingStats.centuries.toString()}
+                    onChangeText={(value) => handleNestedChange('battingStats', 'centuries', parseInt(value) || 0)}
+                    keyboardType="numeric"
+                    placeholder="0"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.statCard}>
+                <View style={styles.statHeader}>
+                  <Text style={styles.statIcon}>50</Text>
+                  <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Half Centuries</Text>
+                </View>
+                <View style={styles.statInputContainer}>
+                  <TextInput
+                    style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
+                    value={formData.battingStats.halfCenturies.toString()}
+                    onChangeText={(value) => handleNestedChange('battingStats', 'halfCenturies', parseInt(value) || 0)}
+                    keyboardType="numeric"
+                    placeholder="0"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.statCard}>
+                <View style={styles.statHeader}>
+                  <Text style={styles.statIcon}>📈</Text>
+                  <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Average</Text>
+                </View>
+                <View style={styles.statInputContainer}>
+                  <TextInput
+                    style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
+                    value={formData.battingStats.average.toString()}
+                    onChangeText={(value) => handleNestedChange('battingStats', 'average', parseFloat(value) || 0)}
+                    keyboardType="numeric"
+                    placeholder="0.0"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.statCard}>
+                <View style={styles.statHeader}>
+                  <Text style={styles.statIcon}>⭐</Text>
+                  <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Highest Score</Text>
+                </View>
+                <View style={styles.statInputContainer}>
+                  <TextInput
+                    style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
+                    value={formData.battingStats.highest.toString()}
+                    onChangeText={(value) => handleNestedChange('battingStats', 'highest', parseInt(value) || 0)}
+                    keyboardType="numeric"
+                    placeholder="0"
+                  />
+                </View>
+              </View>
             </View>
           </View>
         )}
 
         {activeStatsTab === 'bowling' && (
-          <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Matches</Text>
-              <TextInput
-                style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
-                value={formData.bowlingStats.matches.toString()}
-                onChangeText={(value) => handleNestedChange('bowlingStats', 'matches', parseInt(value) || 0)}
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Overs</Text>
-              <TextInput
-                style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
-                value={formData.bowlingStats.overs.toString()}
-                onChangeText={(value) => handleNestedChange('bowlingStats', 'overs', parseFloat(value) || 0)}
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Wickets</Text>
-              <TextInput
-                style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
-                value={formData.bowlingStats.wickets.toString()}
-                onChangeText={(value) => handleNestedChange('bowlingStats', 'wickets', parseInt(value) || 0)}
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Hat Tricks</Text>
-              <TextInput
-                style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
-                value={formData.bowlingStats.hatTricks.toString()}
-                onChangeText={(value) => handleNestedChange('bowlingStats', 'hatTricks', parseInt(value) || 0)}
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Best Figures</Text>
-              <TextInput
-                style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
-                value={formData.bowlingStats.best}
-                onChangeText={(value) => handleNestedChange('bowlingStats', 'best', value)}
-              />
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Average</Text>
-              <TextInput
-                style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
-                value={formData.bowlingStats.average.toString()}
-                onChangeText={(value) => handleNestedChange('bowlingStats', 'average', parseFloat(value) || 0)}
-                keyboardType="numeric"
-              />
+          <View style={styles.statsContent}>
+            <View style={styles.statsGrid}>
+              <View style={styles.statCard}>
+                <View style={styles.statHeader}>
+                  <Text style={styles.statIcon}>📊</Text>
+                  <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Matches</Text>
+                </View>
+                <View style={styles.statInputContainer}>
+                  <TextInput
+                    style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
+                    value={formData.bowlingStats.matches.toString()}
+                    onChangeText={(value) => handleNestedChange('bowlingStats', 'matches', parseInt(value) || 0)}
+                    keyboardType="numeric"
+                    placeholder="0"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.statCard}>
+                <View style={styles.statHeader}>
+                  <Text style={styles.statIcon}>🎯</Text>
+                  <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Overs</Text>
+                </View>
+                <View style={styles.statInputContainer}>
+                  <TextInput
+                    style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
+                    value={formData.bowlingStats.overs.toString()}
+                    onChangeText={(value) => handleNestedChange('bowlingStats', 'overs', parseFloat(value) || 0)}
+                    keyboardType="numeric"
+                    placeholder="0.0"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.statCard}>
+                <View style={styles.statHeader}>
+                  <Text style={styles.statIcon}>🏆</Text>
+                  <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Wickets</Text>
+                </View>
+                <View style={styles.statInputContainer}>
+                  <TextInput
+                    style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
+                    value={formData.bowlingStats.wickets.toString()}
+                    onChangeText={(value) => handleNestedChange('bowlingStats', 'wickets', parseInt(value) || 0)}
+                    keyboardType="numeric"
+                    placeholder="0"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.statCard}>
+                <View style={styles.statHeader}>
+                  <Text style={styles.statIcon}>🎩</Text>
+                  <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Hat Tricks</Text>
+                </View>
+                <View style={styles.statInputContainer}>
+                  <TextInput
+                    style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
+                    value={formData.bowlingStats.hatTricks.toString()}
+                    onChangeText={(value) => handleNestedChange('bowlingStats', 'hatTricks', parseInt(value) || 0)}
+                    keyboardType="numeric"
+                    placeholder="0"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.statCard}>
+                <View style={styles.statHeader}>
+                  <Text style={styles.statIcon}>🏅</Text>
+                  <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Best Figures</Text>
+                </View>
+                <View style={styles.statInputContainer}>
+                  <TextInput
+                    style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
+                    value={formData.bowlingStats.best}
+                    onChangeText={(value) => handleNestedChange('bowlingStats', 'best', value)}
+                    placeholder="0/0"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.statCard}>
+                <View style={styles.statHeader}>
+                  <Text style={styles.statIcon}>📈</Text>
+                  <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Average</Text>
+                </View>
+                <View style={styles.statInputContainer}>
+                  <TextInput
+                    style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
+                    value={formData.bowlingStats.average.toString()}
+                    onChangeText={(value) => handleNestedChange('bowlingStats', 'average', parseFloat(value) || 0)}
+                    keyboardType="numeric"
+                    placeholder="0.0"
+                  />
+                </View>
+              </View>
             </View>
           </View>
         )}
 
         {activeStatsTab === 'fielding' && (
-          <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Matches</Text>
-              <TextInput
-                style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
-                value={formData.fieldingStats.matches.toString()}
-                onChangeText={(value) => handleNestedChange('fieldingStats', 'matches', parseInt(value) || 0)}
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Catches</Text>
-              <TextInput
-                style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
-                value={formData.fieldingStats.catches.toString()}
-                onChangeText={(value) => handleNestedChange('fieldingStats', 'catches', parseInt(value) || 0)}
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Stumpings</Text>
-              <TextInput
-                style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
-                value={formData.fieldingStats.stumpings.toString()}
-                onChangeText={(value) => handleNestedChange('fieldingStats', 'stumpings', parseInt(value) || 0)}
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Run Outs</Text>
-              <TextInput
-                style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
-                value={formData.fieldingStats.runOuts.toString()}
-                onChangeText={(value) => handleNestedChange('fieldingStats', 'runOuts', parseInt(value) || 0)}
-                keyboardType="numeric"
-              />
+          <View style={styles.statsContent}>
+            <View style={styles.statsGrid}>
+              <View style={styles.statCard}>
+                <View style={styles.statHeader}>
+                  <Text style={styles.statIcon}>📊</Text>
+                  <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Matches</Text>
+                </View>
+                <View style={styles.statInputContainer}>
+                  <TextInput
+                    style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
+                    value={formData.fieldingStats.matches.toString()}
+                    onChangeText={(value) => handleNestedChange('fieldingStats', 'matches', parseInt(value) || 0)}
+                    keyboardType="numeric"
+                    placeholder="0"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.statCard}>
+                <View style={styles.statHeader}>
+                  <Text style={styles.statIcon}>🤲</Text>
+                  <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Catches</Text>
+                </View>
+                <View style={styles.statInputContainer}>
+                  <TextInput
+                    style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
+                    value={formData.fieldingStats.catches.toString()}
+                    onChangeText={(value) => handleNestedChange('fieldingStats', 'catches', parseInt(value) || 0)}
+                    keyboardType="numeric"
+                    placeholder="0"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.statCard}>
+                <View style={styles.statHeader}>
+                  <Text style={styles.statIcon}>🧤</Text>
+                  <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Stumpings</Text>
+                </View>
+                <View style={styles.statInputContainer}>
+                  <TextInput
+                    style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
+                    value={formData.fieldingStats.stumpings.toString()}
+                    onChangeText={(value) => handleNestedChange('fieldingStats', 'stumpings', parseInt(value) || 0)}
+                    keyboardType="numeric"
+                    placeholder="0"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.statCard}>
+                <View style={styles.statHeader}>
+                  <Text style={styles.statIcon}>🏃</Text>
+                  <Text style={[styles.statLabel, { color: getColors(colorScheme).text }]}>Run Outs</Text>
+                </View>
+                <View style={styles.statInputContainer}>
+                  <TextInput
+                    style={[styles.statInput, { backgroundColor: getColors(colorScheme).background, color: getColors(colorScheme).text, borderColor: getColors(colorScheme).border }]}
+                    value={formData.fieldingStats.runOuts.toString()}
+                    onChangeText={(value) => handleNestedChange('fieldingStats', 'runOuts', parseInt(value) || 0)}
+                    keyboardType="numeric"
+                    placeholder="0"
+                  />
+                </View>
+              </View>
             </View>
           </View>
         )}
@@ -958,44 +1302,104 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontWeight: '500',
   },
+  statsHeader: {
+    marginBottom: 20,
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    opacity: 0.7,
+    marginTop: 4,
+  },
   tabsContainer: {
     flexDirection: 'row',
-    marginBottom: 16,
+    marginBottom: 24,
     gap: 8,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: 12,
+    padding: 4,
   },
   tab: {
     flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderRadius: 8,
     alignItems: 'center',
+    borderWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  tabIcon: {
+    fontSize: 16,
   },
   tabText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
   },
   statsContainer: {
     marginTop: 8,
   },
+  statsContent: {
+    marginTop: 8,
+  },
   statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 12,
   },
-  statItem: {
-    width: '48%',
+  statCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.03)',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  statHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 8,
+  },
+  statIcon: {
+    fontSize: 18,
   },
   statLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    marginBottom: 4,
-    opacity: 0.7,
+    fontSize: 14,
+    fontWeight: '600',
+    flex: 1,
+  },
+  statInputContainer: {
+    alignItems: 'flex-end',
+    minWidth: 100,
   },
   statInput: {
     borderWidth: 1,
-    borderRadius: 6,
-    padding: 8,
-    fontSize: 14,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
     textAlign: 'center',
+    fontWeight: '600',
+    minWidth: 80,
+    maxWidth: 120,
+  },
+  characterCounter: {
+    alignItems: 'flex-end',
+    marginTop: 4,
+  },
+  characterCount: {
+    fontSize: 12,
+    opacity: 0.7,
+  },
+  statErrorText: {
+    fontSize: 10,
+    marginTop: 2,
+    textAlign: 'right',
+    flex: 1,
   },
 });
