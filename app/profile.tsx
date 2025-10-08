@@ -1367,14 +1367,15 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   editButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
     alignItems: 'center',
   },
   editButtonText: {
     fontSize: 16,
     fontWeight: '600',
+    color: 'white',
   },
   shareButton: {
     flex: 1,
