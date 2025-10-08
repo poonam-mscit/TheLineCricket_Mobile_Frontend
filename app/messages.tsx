@@ -9,6 +9,7 @@ import {
     FlatList,
     Image,
     SafeAreaView,
+    StatusBar,
     StyleSheet,
     TextInput,
     TouchableOpacity,
@@ -565,7 +566,8 @@ export default function MessagesScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { 
-      backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#ffffff'
+      backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#ffffff',
+      paddingTop: StatusBar.currentHeight || 0
     }]}>
       {/* Header */}
       <View style={[styles.header, { 

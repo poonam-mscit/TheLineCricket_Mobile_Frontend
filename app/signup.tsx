@@ -1,9 +1,8 @@
 import { Text, View } from '@/components/Themed';
-import { useColorScheme } from 'react-native';
 import { getColors } from '@/constants/Colors';
 import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StatusBar, StyleSheet, TextInput, TouchableOpacity, useColorScheme } from 'react-native';
 
 export default function SignupScreen() {
   const [fullName, setFullName] = useState('');
@@ -50,11 +49,15 @@ export default function SignupScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+    <SafeAreaView style={[styles.container, { 
+      backgroundColor: getColors(colorScheme).background,
+      paddingTop: StatusBar.currentHeight || 0
+    }]}>
+      <KeyboardAvoidingView 
+        style={styles.keyboardContainer} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.formContainer}>
           <Text style={[styles.title, { color: getColors(colorScheme).text }]}>
             Create Account
@@ -214,8 +217,9 @@ export default function SignupScreen() {
             </Link>
           </View>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -223,6 +227,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'transparent',
+  },
+  keyboardContainer: {
+    flex: 1,
   },
   scrollContainer: {
     flexGrow: 1,

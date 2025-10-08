@@ -6,6 +6,7 @@ import {
     ActivityIndicator, Alert,
     Dimensions, SafeAreaView,
     ScrollView,
+    StatusBar,
     StyleSheet,
     TextInput,
     TouchableOpacity, useColorScheme, View
@@ -306,7 +307,10 @@ Join our sales team as a Sales Representative and help us grow our business by b
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: getColors(colorScheme).background }]}>
+    <SafeAreaView style={[styles.container, { 
+      backgroundColor: getColors(colorScheme).background,
+      paddingTop: StatusBar.currentHeight || 0
+    }]}>
       {renderHeader()}
       <ScrollView 
         style={styles.scrollViewContent}

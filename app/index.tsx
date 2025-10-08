@@ -1,9 +1,8 @@
 import { Text, View } from '@/components/Themed';
-import { useColorScheme } from 'react-native';
 import { getColors } from '@/constants/Colors';
 import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, SafeAreaView, StatusBar, StyleSheet, TextInput, TouchableOpacity, useColorScheme } from 'react-native';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -28,11 +27,15 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <View style={styles.formContainer}>
+    <SafeAreaView style={[styles.container, { 
+      backgroundColor: getColors(colorScheme).background,
+      paddingTop: StatusBar.currentHeight || 0
+    }]}>
+      <KeyboardAvoidingView 
+        style={styles.keyboardContainer} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.formContainer}>
         <Text style={[styles.title, { color: getColors(colorScheme).text }]}>
           Welcome Back
         </Text>
@@ -105,8 +108,9 @@ export default function LoginScreen() {
             </Text>
           </Link>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -114,6 +118,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'transparent',
+  },
+  keyboardContainer: {
+    flex: 1,
   },
   formContainer: {
     flex: 1,

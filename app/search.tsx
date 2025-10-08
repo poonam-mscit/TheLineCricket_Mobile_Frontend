@@ -11,6 +11,7 @@ import {
     RefreshControl,
     SafeAreaView,
     ScrollView,
+    StatusBar,
     StyleSheet,
     TextInput,
     TouchableOpacity,
@@ -455,7 +456,10 @@ export default function SearchScreen() {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: getColors(colorScheme).background }]}>
+    <SafeAreaView style={[styles.container, { 
+      backgroundColor: getColors(colorScheme).background,
+      paddingTop: StatusBar.currentHeight || 0
+    }]}>
       <ScrollView 
         style={styles.content}
         refreshControl={

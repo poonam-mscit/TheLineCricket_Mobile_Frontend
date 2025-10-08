@@ -9,6 +9,7 @@ import {
     Image,
     RefreshControl,
     SafeAreaView,
+    StatusBar,
     StyleSheet,
     TouchableOpacity,
     useColorScheme,
@@ -450,7 +451,8 @@ export default function NotificationsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { 
-      backgroundColor: getColors(colorScheme).background
+      backgroundColor: getColors(colorScheme).background,
+      paddingTop: StatusBar.currentHeight || 0
     }]}>
       {/* Header */}
       <View style={[styles.header, { 

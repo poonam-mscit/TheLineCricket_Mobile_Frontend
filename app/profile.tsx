@@ -7,9 +7,11 @@ import {
     Alert,
     Dimensions,
     Image,
+    Modal,
     RefreshControl,
     SafeAreaView,
     ScrollView,
+    StatusBar,
     StyleSheet,
     TouchableOpacity,
     useColorScheme,
@@ -31,6 +33,7 @@ export default function ProfileScreen() {
   const [showAwardsEditor, setShowAwardsEditor] = useState(false);
   const [showAchievementsEditor, setShowAchievementsEditor] = useState(false);
   const [showExperienceEditor, setShowExperienceEditor] = useState(false);
+  const [showDropdownMenu, setShowDropdownMenu] = useState(false);
   const colorScheme = useColorScheme();
   const { width } = Dimensions.get('window');
   
@@ -1108,7 +1111,8 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { 
-      backgroundColor: getColors(colorScheme).background
+      backgroundColor: getColors(colorScheme).background,
+      paddingTop: StatusBar.currentHeight || 0
     }]}>
       <ScrollView 
         style={styles.content}

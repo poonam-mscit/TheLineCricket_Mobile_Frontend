@@ -8,6 +8,7 @@ import {
     ActivityIndicator, Alert,
     Dimensions, Image, SafeAreaView,
     ScrollView,
+    StatusBar,
     StyleSheet,
     TextInput,
     TouchableOpacity, useColorScheme, View
@@ -450,7 +451,10 @@ export default function CreatePostScreen() {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: getColors(colorScheme).background }]}>
+    <SafeAreaView style={[styles.container, { 
+      backgroundColor: getColors(colorScheme).background,
+      paddingTop: StatusBar.currentHeight || 0
+    }]}>
       {renderHeader()}
       <ScrollView 
         style={styles.scrollViewContent}

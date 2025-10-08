@@ -4,12 +4,13 @@ import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator, Alert,
-  Dimensions, Image, SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity, useColorScheme, View
+    ActivityIndicator, Alert,
+    Dimensions, Image, SafeAreaView,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity, useColorScheme, View
 } from 'react-native';
 
 interface ValidationRules {
@@ -1116,7 +1117,10 @@ export default function EditProfileScreen() {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: getColors(colorScheme).background }]}>
+    <SafeAreaView style={[styles.container, { 
+      backgroundColor: getColors(colorScheme).background,
+      paddingTop: StatusBar.currentHeight || 0
+    }]}>
       {renderHeader()}
       <ScrollView 
         style={styles.scrollViewContent}

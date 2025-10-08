@@ -1,9 +1,8 @@
 import { Text, View } from '@/components/Themed';
-import { useColorScheme } from 'react-native';
 import { getColors } from '@/constants/Colors';
 import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, SafeAreaView, StatusBar, StyleSheet, TextInput, TouchableOpacity, useColorScheme } from 'react-native';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
@@ -208,11 +207,15 @@ export default function ForgotPasswordScreen() {
   );
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <View style={styles.formContainer}>
+    <SafeAreaView style={[styles.container, { 
+      backgroundColor: getColors(colorScheme).background,
+      paddingTop: StatusBar.currentHeight || 0
+    }]}>
+      <KeyboardAvoidingView 
+        style={styles.keyboardContainer} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.formContainer}>
         {step === 1 && renderStep1()}
         {step === 2 && renderStep2()}
         {step === 3 && renderStep3()}
@@ -224,8 +227,9 @@ export default function ForgotPasswordScreen() {
             </Text>
           </Link>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -233,6 +237,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'transparent',
+  },
+  keyboardContainer: {
+    flex: 1,
   },
   formContainer: {
     flex: 1,
