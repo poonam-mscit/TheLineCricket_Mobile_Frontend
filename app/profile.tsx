@@ -13,6 +13,7 @@ import {
     ScrollView,
     StatusBar,
     StyleSheet,
+    TextInput,
     TouchableOpacity,
     useColorScheme,
     View
@@ -23,7 +24,12 @@ import { AchievementsEditor } from '@/components/ui/AchievementsEditor';
 import { AwardsEditor } from '@/components/ui/AwardsEditor';
 import { ExperienceEditor } from '@/components/ui/ExperienceEditor';
 import { InstagramBottomNav } from '@/components/ui/InstagramBottomNav';
+import { PageTypeSelector } from '@/components/ui/PageTypeSelector';
 import { SkillsEditor } from '@/components/ui/SkillsEditor';
+
+// Import page management utilities
+import { AcademyData, CommunityData, PageType, UserPage, VenueData } from '@/types/pages';
+import { getUserPages } from '@/utils/pageStorage';
 
 export default function ProfileScreen() {
   const [isLoading, setIsLoading] = useState(false);
@@ -34,6 +40,12 @@ export default function ProfileScreen() {
   const [showAchievementsEditor, setShowAchievementsEditor] = useState(false);
   const [showExperienceEditor, setShowExperienceEditor] = useState(false);
   const [showDropdownMenu, setShowDropdownMenu] = useState(false);
+  const [showPageTypeSelector, setShowPageTypeSelector] = useState(false);
+  const [showProfileSelector, setShowProfileSelector] = useState(false);
+  const [currentProfile, setCurrentProfile] = useState<'personal' | string>('personal');
+  const [userPages, setUserPages] = useState<UserPage[]>([]);
+  const [isEditingPage, setIsEditingPage] = useState(false);
+  const [editingPageData, setEditingPageData] = useState<any>(null);
   const colorScheme = useColorScheme();
   const { width } = Dimensions.get('window');
   
@@ -185,10 +197,20 @@ export default function ProfileScreen() {
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  // Load posts from storage on component mount
+  // Load posts and pages from storage on component mount
   useEffect(() => {
     loadUserPostsFromStorage();
+    loadUserPagesFromStorage();
   }, []);
+
+  const loadUserPagesFromStorage = async () => {
+    try {
+      const pages = await getUserPages();
+      setUserPages(pages);
+    } catch (error) {
+      console.log('Error loading user pages:', error);
+    }
+  };
 
   const loadUserPostsFromStorage = async () => {
     try {
@@ -205,11 +227,966 @@ export default function ProfileScreen() {
   // Event handlers
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    // Reload posts from storage
+    // Reload posts and pages from storage
     await loadUserPostsFromStorage();
+    await loadUserPagesFromStorage();
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsRefreshing(false);
+  };
+
+  const handlePageTypeSelect = (type: PageType) => {
+    console.log('Page type selected:', type);
+    setShowPageTypeSelector(false);
+    // Navigate to create page screen based on type
+    router.push(`/create-${type}` as any);
+  };
+
+
+  const getCurrentProfileName = () => {
+    if (currentProfile === 'personal') {
+      return user.fullName;
+    }
+    const page = userPages.find(p => p.id === currentProfile);
+    return page ? page.name : user.fullName;
+  };
+
+  const handleProfileSwitch = (profileId: string) => {
+    setCurrentProfile(profileId);
+    setShowProfileSelector(false);
+    // Refresh data based on selected profile
+    if (profileId === 'personal') {
+      // Load personal profile data
+      loadUserPostsFromStorage();
+    } else {
+      // Load specific page data
+      const page = userPages.find(p => p.id === profileId);
+      if (page) {
+        // Load page-specific data
+        loadPageData(page);
+      }
+    }
+  };
+
+  const loadPageData = (page: UserPage) => {
+    // Load page-specific data based on type
+    console.log('Loading data for page:', page.name, page.type);
+  };
+
+  const handleEditPage = () => {
+    if (currentProfile === 'personal') return;
+    
+    const page = userPages.find(p => p.id === currentProfile);
+    if (page) {
+      setEditingPageData(page.data);
+      setIsEditingPage(true);
+    }
+  };
+
+  const handleSavePage = async () => {
+    if (!editingPageData || currentProfile === 'personal') return;
+    
+    try {
+      const updatedPage = {
+        ...userPages.find(p => p.id === currentProfile)!,
+        data: editingPageData
+      };
+      
+      // Update in AsyncStorage
+      const updatedPages = userPages.map(p => 
+        p.id === currentProfile ? updatedPage : p
+      );
+      setUserPages(updatedPages);
+      
+      // Save to AsyncStorage
+      await AsyncStorage.setItem('user_pages', JSON.stringify(updatedPages));
+      
+      setIsEditingPage(false);
+      setEditingPageData(null);
+      
+      console.log('Page saved successfully');
+    } catch (error) {
+      console.error('Error saving page:', error);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingPage(false);
+    setEditingPageData(null);
+  };
+
+  const renderProfileContent = () => {
+    if (currentProfile === 'personal') {
+      return (
+        <>
+          {renderProfileHeader()}
+          {renderPersonalInfoCard()}
+          {renderPostsSection()}
+          {renderCricketStats()}
+          {renderSkillsSection()}
+          {renderExperienceSection()}
+          {renderAchievementsSection()}
+          {renderAwardsSection()}
+          {renderUpcomingMatches()}
+        </>
+      );
+    } else {
+      // Render page content based on type
+      const page = userPages.find(p => p.id === currentProfile);
+      if (page) {
+        return renderPageContent(page);
+      }
+    }
+  };
+
+  const renderPageContent = (page: UserPage) => {
+    switch (page.type) {
+      case 'academy':
+        return renderAcademyContent(page);
+      case 'community':
+        return renderCommunityContent(page);
+      case 'venue':
+        return renderVenueContent(page);
+      default:
+        return null;
+    }
+  };
+
+  const renderAcademyContent = (page: UserPage) => {
+    const academyData = isEditingPage ? editingPageData : (page.data as AcademyData);
+    return (
+      <>
+        {/* Academy Header */}
+        <View style={[styles.pageHeader, { 
+          backgroundColor: getColors(colorScheme).card,
+          borderColor: getColors(colorScheme).border
+        }]}>
+          <View style={styles.pageInfo}>
+            {isEditingPage ? (
+              <>
+                <TextInput
+                  style={[styles.pageNameInput, { 
+                    color: getColors(colorScheme).text,
+                    borderColor: getColors(colorScheme).border
+                  }]}
+                  value={academyData.name}
+                  onChangeText={(text) => setEditingPageData({...academyData, name: text})}
+                  placeholder="Academy Name"
+                />
+                <TextInput
+                  style={[styles.pageDescriptionInput, { 
+                    color: getColors(colorScheme).text,
+                    borderColor: getColors(colorScheme).border
+                  }]}
+                  value={academyData.description}
+                  onChangeText={(text) => setEditingPageData({...academyData, description: text})}
+                  placeholder="Academy Description"
+                  multiline
+                />
+                <View style={styles.editStatsRow}>
+                  <TextInput
+                    style={[styles.editStatInput, { 
+                      color: getColors(colorScheme).text,
+                      borderColor: getColors(colorScheme).border
+                    }]}
+                    value={academyData.students.toString()}
+                    onChangeText={(text) => setEditingPageData({...academyData, students: parseInt(text) || 0})}
+                    placeholder="Students"
+                    keyboardType="numeric"
+                  />
+                  <TextInput
+                    style={[styles.editStatInput, { 
+                      color: getColors(colorScheme).text,
+                      borderColor: getColors(colorScheme).border
+                    }]}
+                    value={academyData.successRate.toString()}
+                    onChangeText={(text) => setEditingPageData({...academyData, successRate: parseInt(text) || 0})}
+                    placeholder="Success Rate %"
+                    keyboardType="numeric"
+                  />
+                </View>
+              </>
+            ) : (
+              <>
+                <Text style={[styles.pageName, { 
+                  color: getColors(colorScheme).text 
+                }]}>
+                  🏫 {academyData.name}
+                </Text>
+                <Text style={[styles.pageDescription, { 
+                  color: getColors(colorScheme).text 
+                }]}>
+                  {academyData.description}
+                </Text>
+                <View style={styles.pageStats}>
+                  <Text style={[styles.pageStat, { 
+                    color: getColors(colorScheme).text 
+                  }]}>
+                    👥 {academyData.students} Students
+                  </Text>
+                  <Text style={[styles.pageStat, { 
+                    color: getColors(colorScheme).text 
+                  }]}>
+                    🏆 {academyData.successRate}% Success Rate
+                  </Text>
+                </View>
+              </>
+            )}
+          </View>
+          
+          {/* Edit/Save/Cancel Buttons */}
+          <View style={styles.pageActionButtons}>
+            {isEditingPage ? (
+              <>
+                <TouchableOpacity
+                  style={[styles.pageSaveButton, { backgroundColor: '#10B981' }]}
+                  onPress={handleSavePage}
+                >
+                  <Text style={styles.pageSaveButtonText}>Save</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.pageCancelButton, { backgroundColor: '#EF4444' }]}
+                  onPress={handleCancelEdit}
+                >
+                  <Text style={styles.pageCancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <TouchableOpacity
+                style={[styles.pageEditButton, { backgroundColor: getColors(colorScheme).tint }]}
+                onPress={handleEditPage}
+              >
+                <Text style={styles.pageEditButtonText}>Edit</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* Academy Facilities */}
+        <View style={styles.pageSection}>
+          <Text style={[styles.sectionTitle, { 
+            color: getColors(colorScheme).text 
+          }]}>
+            Facilities
+          </Text>
+          {isEditingPage ? (
+            <View style={styles.editSection}>
+              {academyData.facilities?.map((facility, index) => (
+                <View key={facility.id || index} style={[styles.editItem, { 
+                  backgroundColor: getColors(colorScheme).card,
+                  borderColor: getColors(colorScheme).border
+                }]}>
+                  <TextInput
+                    style={[styles.editItemInput, { 
+                      color: getColors(colorScheme).text,
+                      borderColor: getColors(colorScheme).border
+                    }]}
+                    value={facility.name}
+                    onChangeText={(text) => {
+                      const updatedFacilities = [...(academyData.facilities || [])];
+                      updatedFacilities[index] = { ...facility, name: text };
+                      setEditingPageData({...academyData, facilities: updatedFacilities});
+                    }}
+                    placeholder="Facility Name"
+                  />
+                  <TextInput
+                    style={[styles.editItemInput, { 
+                      color: getColors(colorScheme).text,
+                      borderColor: getColors(colorScheme).border
+                    }]}
+                    value={facility.description}
+                    onChangeText={(text) => {
+                      const updatedFacilities = [...(academyData.facilities || [])];
+                      updatedFacilities[index] = { ...facility, description: text };
+                      setEditingPageData({...academyData, facilities: updatedFacilities});
+                    }}
+                    placeholder="Description"
+                    multiline
+                  />
+                  <TouchableOpacity
+                    style={[styles.removeButton, { backgroundColor: '#EF4444' }]}
+                    onPress={() => {
+                      const updatedFacilities = academyData.facilities?.filter((_, i) => i !== index) || [];
+                      setEditingPageData({...academyData, facilities: updatedFacilities});
+                    }}
+                  >
+                    <Text style={styles.removeButtonText}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+              <TouchableOpacity
+                style={[styles.addButton, { backgroundColor: getColors(colorScheme).tint }]}
+                onPress={() => {
+                  const newFacility = {
+                    id: Date.now().toString(),
+                    name: '',
+                    description: '',
+                    available: true
+                  };
+                  const updatedFacilities = [...(academyData.facilities || []), newFacility];
+                  setEditingPageData({...academyData, facilities: updatedFacilities});
+                }}
+              >
+                <Text style={styles.addButtonText}>+ Add Facility</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.facilitiesGrid}>
+              {academyData.facilities?.map((facility, index) => (
+                <View key={facility.id || index} style={[styles.facilityItem, { 
+                  backgroundColor: getColors(colorScheme).card,
+                  borderColor: getColors(colorScheme).border
+                }]}>
+                  <Text style={[styles.facilityText, { 
+                    color: getColors(colorScheme).text 
+                  }]}>
+                    {facility.name}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* Academy Coaches */}
+        <View style={styles.pageSection}>
+          <Text style={[styles.sectionTitle, { 
+            color: getColors(colorScheme).text 
+          }]}>
+            Coaches ({academyData.coaches?.length || 0})
+          </Text>
+          {isEditingPage ? (
+            <View style={styles.editSection}>
+              {academyData.coaches?.map((coach, index) => (
+                <View key={coach.id || index} style={[styles.editItem, { 
+                  backgroundColor: getColors(colorScheme).card,
+                  borderColor: getColors(colorScheme).border
+                }]}>
+                  <TextInput
+                    style={[styles.editItemInput, { 
+                      color: getColors(colorScheme).text,
+                      borderColor: getColors(colorScheme).border
+                    }]}
+                    value={coach.name}
+                    onChangeText={(text) => {
+                      const updatedCoaches = [...(academyData.coaches || [])];
+                      updatedCoaches[index] = { ...coach, name: text };
+                      setEditingPageData({...academyData, coaches: updatedCoaches});
+                    }}
+                    placeholder="Coach Name"
+                  />
+                  <TextInput
+                    style={[styles.editItemInput, { 
+                      color: getColors(colorScheme).text,
+                      borderColor: getColors(colorScheme).border
+                    }]}
+                    value={coach.role}
+                    onChangeText={(text) => {
+                      const updatedCoaches = [...(academyData.coaches || [])];
+                      updatedCoaches[index] = { ...coach, role: text };
+                      setEditingPageData({...academyData, coaches: updatedCoaches});
+                    }}
+                    placeholder="Role"
+                  />
+                  <TextInput
+                    style={[styles.editItemInput, { 
+                      color: getColors(colorScheme).text,
+                      borderColor: getColors(colorScheme).border
+                    }]}
+                    value={coach.experience.toString()}
+                    onChangeText={(text) => {
+                      const updatedCoaches = [...(academyData.coaches || [])];
+                      updatedCoaches[index] = { ...coach, experience: parseInt(text) || 0 };
+                      setEditingPageData({...academyData, coaches: updatedCoaches});
+                    }}
+                    placeholder="Experience (years)"
+                    keyboardType="numeric"
+                  />
+                  <TouchableOpacity
+                    style={[styles.removeButton, { backgroundColor: '#EF4444' }]}
+                    onPress={() => {
+                      const updatedCoaches = academyData.coaches?.filter((_, i) => i !== index) || [];
+                      setEditingPageData({...academyData, coaches: updatedCoaches});
+                    }}
+                  >
+                    <Text style={styles.removeButtonText}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+              <TouchableOpacity
+                style={[styles.addButton, { backgroundColor: getColors(colorScheme).tint }]}
+                onPress={() => {
+                  const newCoach = {
+                    id: Date.now().toString(),
+                    name: '',
+                    role: '',
+                    experience: 0,
+                    specialization: [],
+                    verified: false
+                  };
+                  const updatedCoaches = [...(academyData.coaches || []), newCoach];
+                  setEditingPageData({...academyData, coaches: updatedCoaches});
+                }}
+              >
+                <Text style={styles.addButtonText}>+ Add Coach</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={[styles.coachesCard, { 
+              backgroundColor: getColors(colorScheme).card,
+              borderColor: getColors(colorScheme).border
+            }]}>
+              <Text style={[styles.coachesText, { 
+                color: getColors(colorScheme).text 
+              }]}>
+                Meet our experienced coaching staff
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Academy Programs */}
+        <View style={styles.pageSection}>
+          <Text style={[styles.sectionTitle, { 
+            color: getColors(colorScheme).text 
+          }]}>
+            Programs ({academyData.programs?.length || 0})
+          </Text>
+          {isEditingPage ? (
+            <View style={styles.editSection}>
+              {academyData.programs?.map((program, index) => (
+                <View key={program.id || index} style={[styles.editItem, { 
+                  backgroundColor: getColors(colorScheme).card,
+                  borderColor: getColors(colorScheme).border
+                }]}>
+                  <TextInput
+                    style={[styles.editItemInput, { 
+                      color: getColors(colorScheme).text,
+                      borderColor: getColors(colorScheme).border
+                    }]}
+                    value={program.name}
+                    onChangeText={(text) => {
+                      const updatedPrograms = [...(academyData.programs || [])];
+                      updatedPrograms[index] = { ...program, name: text };
+                      setEditingPageData({...academyData, programs: updatedPrograms});
+                    }}
+                    placeholder="Program Name"
+                  />
+                  <TextInput
+                    style={[styles.editItemInput, { 
+                      color: getColors(colorScheme).text,
+                      borderColor: getColors(colorScheme).border
+                    }]}
+                    value={program.duration}
+                    onChangeText={(text) => {
+                      const updatedPrograms = [...(academyData.programs || [])];
+                      updatedPrograms[index] = { ...program, duration: text };
+                      setEditingPageData({...academyData, programs: updatedPrograms});
+                    }}
+                    placeholder="Duration"
+                  />
+                  <TextInput
+                    style={[styles.editItemInput, { 
+                      color: getColors(colorScheme).text,
+                      borderColor: getColors(colorScheme).border
+                    }]}
+                    value={program.level}
+                    onChangeText={(text) => {
+                      const updatedPrograms = [...(academyData.programs || [])];
+                      updatedPrograms[index] = { ...program, level: text };
+                      setEditingPageData({...academyData, programs: updatedPrograms});
+                    }}
+                    placeholder="Level"
+                  />
+                  <TextInput
+                    style={[styles.editItemInput, { 
+                      color: getColors(colorScheme).text,
+                      borderColor: getColors(colorScheme).border
+                    }]}
+                    value={program.fee.toString()}
+                    onChangeText={(text) => {
+                      const updatedPrograms = [...(academyData.programs || [])];
+                      updatedPrograms[index] = { ...program, fee: parseInt(text) || 0 };
+                      setEditingPageData({...academyData, programs: updatedPrograms});
+                    }}
+                    placeholder="Fee"
+                    keyboardType="numeric"
+                  />
+                  <TextInput
+                    style={[styles.editItemInput, { 
+                      color: getColors(colorScheme).text,
+                      borderColor: getColors(colorScheme).border
+                    }]}
+                    value={program.description}
+                    onChangeText={(text) => {
+                      const updatedPrograms = [...(academyData.programs || [])];
+                      updatedPrograms[index] = { ...program, description: text };
+                      setEditingPageData({...academyData, programs: updatedPrograms});
+                    }}
+                    placeholder="Description"
+                    multiline
+                  />
+                  <TouchableOpacity
+                    style={[styles.removeButton, { backgroundColor: '#EF4444' }]}
+                    onPress={() => {
+                      const updatedPrograms = academyData.programs?.filter((_, i) => i !== index) || [];
+                      setEditingPageData({...academyData, programs: updatedPrograms});
+                    }}
+                  >
+                    <Text style={styles.removeButtonText}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+              <TouchableOpacity
+                style={[styles.addButton, { backgroundColor: getColors(colorScheme).tint }]}
+                onPress={() => {
+                  const newProgram = {
+                    id: Date.now().toString(),
+                    name: '',
+                    duration: '',
+                    level: '',
+                    fee: 0,
+                    description: '',
+                    enrolled: 0,
+                    maxStudents: 0
+                  };
+                  const updatedPrograms = [...(academyData.programs || []), newProgram];
+                  setEditingPageData({...academyData, programs: updatedPrograms});
+                }}
+              >
+                <Text style={styles.addButtonText}>+ Add Program</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={[styles.programsCard, { 
+              backgroundColor: getColors(colorScheme).card,
+              borderColor: getColors(colorScheme).border
+            }]}>
+              <Text style={[styles.programsText, { 
+                color: getColors(colorScheme).text 
+              }]}>
+                Discover our comprehensive training programs
+              </Text>
+            </View>
+          )}
+        </View>
+      </>
+    );
+  };
+
+  const renderCommunityContent = (page: UserPage) => {
+    const communityData = isEditingPage ? editingPageData : (page.data as CommunityData);
+    return (
+      <>
+        {/* Community Header */}
+        <View style={[styles.pageHeader, { 
+          backgroundColor: getColors(colorScheme).card,
+          borderColor: getColors(colorScheme).border
+        }]}>
+          <View style={styles.pageInfo}>
+            {isEditingPage ? (
+              <>
+                <TextInput
+                  style={[styles.pageNameInput, { 
+                    color: getColors(colorScheme).text,
+                    borderColor: getColors(colorScheme).border
+                  }]}
+                  value={communityData.name}
+                  onChangeText={(text) => setEditingPageData({...communityData, name: text})}
+                  placeholder="Community Name"
+                />
+                <TextInput
+                  style={[styles.pageDescriptionInput, { 
+                    color: getColors(colorScheme).text,
+                    borderColor: getColors(colorScheme).border
+                  }]}
+                  value={communityData.description}
+                  onChangeText={(text) => setEditingPageData({...communityData, description: text})}
+                  placeholder="Community Description"
+                  multiline
+                />
+                <View style={styles.editStatsRow}>
+                  <TextInput
+                    style={[styles.editStatInput, { 
+                      color: getColors(colorScheme).text,
+                      borderColor: getColors(colorScheme).border
+                    }]}
+                    value={communityData.membersCount?.toString() || '0'}
+                    onChangeText={(text) => setEditingPageData({...communityData, membersCount: parseInt(text) || 0})}
+                    placeholder="Members Count"
+                    keyboardType="numeric"
+                  />
+                  <TextInput
+                    style={[styles.editStatInput, { 
+                      color: getColors(colorScheme).text,
+                      borderColor: getColors(colorScheme).border
+                    }]}
+                    value={communityData.location || ''}
+                    onChangeText={(text) => setEditingPageData({...communityData, location: text})}
+                    placeholder="Location"
+                  />
+                </View>
+              </>
+            ) : (
+              <>
+                <Text style={[styles.pageName, { 
+                  color: getColors(colorScheme).text 
+                }]}>
+                  👥 {communityData.name}
+                </Text>
+                <Text style={[styles.pageDescription, { 
+                  color: getColors(colorScheme).text 
+                }]}>
+                  {communityData.description}
+                </Text>
+                <View style={styles.pageStats}>
+                  <Text style={[styles.pageStat, { 
+                    color: getColors(colorScheme).text 
+                  }]}>
+                    👥 {communityData.membersCount || 0} Members
+                  </Text>
+                  <Text style={[styles.pageStat, { 
+                    color: getColors(colorScheme).text 
+                  }]}>
+                    📍 {communityData.location || 'Not specified'}
+                  </Text>
+                </View>
+              </>
+            )}
+          </View>
+          
+          {/* Edit/Save/Cancel Buttons */}
+          <View style={styles.pageActionButtons}>
+            {isEditingPage ? (
+              <>
+                <TouchableOpacity
+                  style={[styles.pageSaveButton, { backgroundColor: '#10B981' }]}
+                  onPress={handleSavePage}
+                >
+                  <Text style={styles.pageSaveButtonText}>Save</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.pageCancelButton, { backgroundColor: '#EF4444' }]}
+                  onPress={handleCancelEdit}
+                >
+                  <Text style={styles.pageCancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <TouchableOpacity
+                style={[styles.pageEditButton, { backgroundColor: getColors(colorScheme).tint }]}
+                onPress={handleEditPage}
+              >
+                <Text style={styles.pageEditButtonText}>Edit</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* Community Rules */}
+        <View style={styles.pageSection}>
+          <Text style={[styles.sectionTitle, { 
+            color: getColors(colorScheme).text 
+          }]}>
+            Community Rules ({communityData.rules?.length || 0})
+          </Text>
+          {isEditingPage ? (
+            <View style={styles.editSection}>
+              {communityData.rules?.map((rule, index) => (
+                <View key={index} style={[styles.editItem, { 
+                  backgroundColor: getColors(colorScheme).card,
+                  borderColor: getColors(colorScheme).border
+                }]}>
+                  <TextInput
+                    style={[styles.editItemInput, { 
+                      color: getColors(colorScheme).text,
+                      borderColor: getColors(colorScheme).border
+                    }]}
+                    value={rule}
+                    onChangeText={(text) => {
+                      const updatedRules = [...(communityData.rules || [])];
+                      updatedRules[index] = text;
+                      setEditingPageData({...communityData, rules: updatedRules});
+                    }}
+                    placeholder="Rule"
+                    multiline
+                  />
+                  <TouchableOpacity
+                    style={[styles.removeButton, { backgroundColor: '#EF4444' }]}
+                    onPress={() => {
+                      const updatedRules = communityData.rules?.filter((_, i) => i !== index) || [];
+                      setEditingPageData({...communityData, rules: updatedRules});
+                    }}
+                  >
+                    <Text style={styles.removeButtonText}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+              <TouchableOpacity
+                style={[styles.addButton, { backgroundColor: getColors(colorScheme).tint }]}
+                onPress={() => {
+                  const updatedRules = [...(communityData.rules || []), ''];
+                  setEditingPageData({...communityData, rules: updatedRules});
+                }}
+              >
+                <Text style={styles.addButtonText}>+ Add Rule</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              {communityData.rules?.map((rule, index) => (
+                <View key={index} style={[styles.ruleItem, { 
+                  backgroundColor: getColors(colorScheme).card,
+                  borderColor: getColors(colorScheme).border
+                }]}>
+                  <Text style={[styles.ruleText, { 
+                    color: getColors(colorScheme).text 
+                  }]}>
+                    • {rule}
+                  </Text>
+                </View>
+              ))}
+            </>
+          )}
+        </View>
+
+        {/* Community Events */}
+        <View style={styles.pageSection}>
+          <Text style={[styles.sectionTitle, { 
+            color: getColors(colorScheme).text 
+          }]}>
+            Upcoming Events
+          </Text>
+          <View style={[styles.eventsCard, { 
+            backgroundColor: getColors(colorScheme).card,
+            borderColor: getColors(colorScheme).border
+          }]}>
+            <Text style={[styles.eventsText, { 
+              color: getColors(colorScheme).text 
+            }]}>
+              Join our community events and activities
+            </Text>
+          </View>
+        </View>
+      </>
+    );
+  };
+
+  const renderVenueContent = (page: UserPage) => {
+    const venueData = isEditingPage ? editingPageData : (page.data as VenueData);
+    return (
+      <>
+        {/* Venue Header */}
+        <View style={[styles.pageHeader, { 
+          backgroundColor: getColors(colorScheme).card,
+          borderColor: getColors(colorScheme).border
+        }]}>
+          <View style={styles.pageInfo}>
+            {isEditingPage ? (
+              <>
+                <TextInput
+                  style={[styles.pageNameInput, { 
+                    color: getColors(colorScheme).text,
+                    borderColor: getColors(colorScheme).border
+                  }]}
+                  value={venueData.name}
+                  onChangeText={(text) => setEditingPageData({...venueData, name: text})}
+                  placeholder="Venue Name"
+                />
+                <TextInput
+                  style={[styles.pageDescriptionInput, { 
+                    color: getColors(colorScheme).text,
+                    borderColor: getColors(colorScheme).border
+                  }]}
+                  value={venueData.description}
+                  onChangeText={(text) => setEditingPageData({...venueData, description: text})}
+                  placeholder="Venue Description"
+                  multiline
+                />
+                <View style={styles.editStatsRow}>
+                  <TextInput
+                    style={[styles.editStatInput, { 
+                      color: getColors(colorScheme).text,
+                      borderColor: getColors(colorScheme).border
+                    }]}
+                    value={venueData.capacity?.toString() || '0'}
+                    onChangeText={(text) => setEditingPageData({...venueData, capacity: parseInt(text) || 0})}
+                    placeholder="Capacity"
+                    keyboardType="numeric"
+                  />
+                  <TextInput
+                    style={[styles.editStatInput, { 
+                      color: getColors(colorScheme).text,
+                      borderColor: getColors(colorScheme).border
+                    }]}
+                    value={venueData.address || ''}
+                    onChangeText={(text) => setEditingPageData({...venueData, address: text})}
+                    placeholder="Address"
+                  />
+                </View>
+              </>
+            ) : (
+              <>
+                <Text style={[styles.pageName, { 
+                  color: getColors(colorScheme).text 
+                }]}>
+                  🏟️ {venueData.name}
+                </Text>
+                <Text style={[styles.pageDescription, { 
+                  color: getColors(colorScheme).text 
+                }]}>
+                  {venueData.description}
+                </Text>
+                <View style={styles.pageStats}>
+                  <Text style={[styles.pageStat, { 
+                    color: getColors(colorScheme).text 
+                  }]}>
+                    👥 Capacity: {venueData.capacity || 0}
+                  </Text>
+                  <Text style={[styles.pageStat, { 
+                    color: getColors(colorScheme).text 
+                  }]}>
+                    📍 {venueData.address || 'Not specified'}
+                  </Text>
+                </View>
+              </>
+            )}
+          </View>
+          
+          {/* Edit/Save/Cancel Buttons */}
+          <View style={styles.pageActionButtons}>
+            {isEditingPage ? (
+              <>
+                <TouchableOpacity
+                  style={[styles.pageSaveButton, { backgroundColor: '#10B981' }]}
+                  onPress={handleSavePage}
+                >
+                  <Text style={styles.pageSaveButtonText}>Save</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.pageCancelButton, { backgroundColor: '#EF4444' }]}
+                  onPress={handleCancelEdit}
+                >
+                  <Text style={styles.pageCancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <TouchableOpacity
+                style={[styles.pageEditButton, { backgroundColor: getColors(colorScheme).tint }]}
+                onPress={handleEditPage}
+              >
+                <Text style={styles.pageEditButtonText}>Edit</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* Venue Amenities */}
+        <View style={styles.pageSection}>
+          <Text style={[styles.sectionTitle, { 
+            color: getColors(colorScheme).text 
+          }]}>
+            Amenities ({venueData.facilities?.length || 0})
+          </Text>
+          {isEditingPage ? (
+            <View style={styles.editSection}>
+              {venueData.facilities?.map((facility, index) => (
+                <View key={facility.id || index} style={[styles.editItem, { 
+                  backgroundColor: getColors(colorScheme).card,
+                  borderColor: getColors(colorScheme).border
+                }]}>
+                  <TextInput
+                    style={[styles.editItemInput, { 
+                      color: getColors(colorScheme).text,
+                      borderColor: getColors(colorScheme).border
+                    }]}
+                    value={facility.name}
+                    onChangeText={(text) => {
+                      const updatedFacilities = [...(venueData.facilities || [])];
+                      updatedFacilities[index] = { ...facility, name: text };
+                      setEditingPageData({...venueData, facilities: updatedFacilities});
+                    }}
+                    placeholder="Amenity Name"
+                  />
+                  <TextInput
+                    style={[styles.editItemInput, { 
+                      color: getColors(colorScheme).text,
+                      borderColor: getColors(colorScheme).border
+                    }]}
+                    value={facility.description}
+                    onChangeText={(text) => {
+                      const updatedFacilities = [...(venueData.facilities || [])];
+                      updatedFacilities[index] = { ...facility, description: text };
+                      setEditingPageData({...venueData, facilities: updatedFacilities});
+                    }}
+                    placeholder="Description"
+                    multiline
+                  />
+                  <TouchableOpacity
+                    style={[styles.removeButton, { backgroundColor: '#EF4444' }]}
+                    onPress={() => {
+                      const updatedFacilities = venueData.facilities?.filter((_, i) => i !== index) || [];
+                      setEditingPageData({...venueData, facilities: updatedFacilities});
+                    }}
+                  >
+                    <Text style={styles.removeButtonText}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+              <TouchableOpacity
+                style={[styles.addButton, { backgroundColor: getColors(colorScheme).tint }]}
+                onPress={() => {
+                  const newFacility = {
+                    id: Date.now().toString(),
+                    name: '',
+                    description: '',
+                    available: true
+                  };
+                  const updatedFacilities = [...(venueData.facilities || []), newFacility];
+                  setEditingPageData({...venueData, facilities: updatedFacilities});
+                }}
+              >
+                <Text style={styles.addButtonText}>+ Add Amenity</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.amenitiesGrid}>
+              {venueData.facilities?.map((facility, index) => (
+                <View key={facility.id || index} style={[styles.amenityItem, { 
+                  backgroundColor: getColors(colorScheme).card,
+                  borderColor: getColors(colorScheme).border
+                }]}>
+                  <Text style={[styles.amenityText, { 
+                    color: getColors(colorScheme).text 
+                  }]}>
+                    {facility.name}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* Booking Information */}
+        <View style={styles.pageSection}>
+          <Text style={[styles.sectionTitle, { 
+            color: getColors(colorScheme).text 
+          }]}>
+            Booking Information
+          </Text>
+          <View style={[styles.bookingInfo, { 
+            backgroundColor: getColors(colorScheme).card,
+            borderColor: getColors(colorScheme).border
+          }]}>
+            <Text style={[styles.bookingText, { 
+              color: getColors(colorScheme).text 
+            }]}>
+              {venueData.bookingInfo}
+            </Text>
+          </View>
+        </View>
+      </>
+    );
   };
 
   const handleEditProfile = () => {
@@ -1115,11 +2092,22 @@ export default function ProfileScreen() {
       backgroundColor: getColors(colorScheme).background,
       borderBottomColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
     }]}>
-      <Text style={[styles.headerTitle, { 
-        color: getColors(colorScheme).text 
-      }]}>
-        {user.fullName}
-      </Text>
+      {/* Profile Selector Button */}
+      <TouchableOpacity 
+        style={styles.profileSelectorButton}
+        onPress={() => setShowProfileSelector(!showProfileSelector)}
+      >
+        <Text style={[styles.headerTitle, { 
+          color: getColors(colorScheme).text 
+        }]}>
+          {getCurrentProfileName()}
+        </Text>
+        <Text style={[styles.dropdownArrow, { 
+          color: getColors(colorScheme).text 
+        }]}>
+          ▼
+        </Text>
+      </TouchableOpacity>
       
       <TouchableOpacity 
         style={styles.burgerMenuButton}
@@ -1196,6 +2184,151 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </Modal>
       )}
+
+      {/* Profile Selector Dropdown */}
+      {showProfileSelector && (
+        <Modal
+          transparent={true}
+          visible={showProfileSelector}
+          animationType="fade"
+          onRequestClose={() => setShowProfileSelector(false)}
+        >
+          <TouchableOpacity 
+            style={styles.profileSelectorOverlay}
+            activeOpacity={1}
+            onPress={() => setShowProfileSelector(false)}
+          >
+            <View style={[styles.profileSelectorMenu, { 
+              backgroundColor: getColors(colorScheme).card,
+              borderColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
+            }]}>
+              {/* Personal Profile Option */}
+              <TouchableOpacity
+                style={styles.profileOption}
+                onPress={() => handleProfileSwitch('personal')}
+              >
+                <View style={styles.profileOptionContent}>
+                  <Text style={styles.profileOptionIcon}>👤</Text>
+                  <View style={styles.profileOptionText}>
+                    <Text style={[styles.profileOptionName, { 
+                      color: getColors(colorScheme).text 
+                    }]}>
+                      {user.fullName}
+                    </Text>
+                    <Text style={[styles.profileOptionType, { 
+                      color: getColors(colorScheme).text 
+                    }]}>
+                      Personal Profile
+                    </Text>
+                  </View>
+                  {currentProfile === 'personal' && (
+                    <Text style={styles.selectedIndicator}>✓</Text>
+                  )}
+                </View>
+              </TouchableOpacity>
+
+              {/* Academy Pages */}
+              {userPages.filter(page => page.type === 'academy').map(page => (
+                <TouchableOpacity
+                  key={page.id}
+                  style={styles.profileOption}
+                  onPress={() => handleProfileSwitch(page.id)}
+                >
+                  <View style={styles.profileOptionContent}>
+                    <Text style={styles.profileOptionIcon}>🏫</Text>
+                    <View style={styles.profileOptionText}>
+                      <Text style={[styles.profileOptionName, { 
+                        color: getColors(colorScheme).text 
+                      }]}>
+                        {page.name}
+                      </Text>
+                      <Text style={[styles.profileOptionType, { 
+                        color: getColors(colorScheme).text 
+                      }]}>
+                        Academy
+                      </Text>
+                    </View>
+                    {currentProfile === page.id && (
+                      <Text style={styles.selectedIndicator}>✓</Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+
+              {/* Community Pages */}
+              {userPages.filter(page => page.type === 'community').map(page => (
+                <TouchableOpacity
+                  key={page.id}
+                  style={styles.profileOption}
+                  onPress={() => handleProfileSwitch(page.id)}
+                >
+                  <View style={styles.profileOptionContent}>
+                    <Text style={styles.profileOptionIcon}>👥</Text>
+                    <View style={styles.profileOptionText}>
+                      <Text style={[styles.profileOptionName, { 
+                        color: getColors(colorScheme).text 
+                      }]}>
+                        {page.name}
+                      </Text>
+                      <Text style={[styles.profileOptionType, { 
+                        color: getColors(colorScheme).text 
+                      }]}>
+                        Community
+                      </Text>
+                    </View>
+                    {currentProfile === page.id && (
+                      <Text style={styles.selectedIndicator}>✓</Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+
+              {/* Venue Pages */}
+              {userPages.filter(page => page.type === 'venue').map(page => (
+                <TouchableOpacity
+                  key={page.id}
+                  style={styles.profileOption}
+                  onPress={() => handleProfileSwitch(page.id)}
+                >
+                  <View style={styles.profileOptionContent}>
+                    <Text style={styles.profileOptionIcon}>🏟️</Text>
+                    <View style={styles.profileOptionText}>
+                      <Text style={[styles.profileOptionName, { 
+                        color: getColors(colorScheme).text 
+                      }]}>
+                        {page.name}
+                      </Text>
+                      <Text style={[styles.profileOptionType, { 
+                        color: getColors(colorScheme).text 
+                      }]}>
+                        Venue
+                      </Text>
+                    </View>
+                    {currentProfile === page.id && (
+                      <Text style={styles.selectedIndicator}>✓</Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+
+              {/* Add New Page Button */}
+              <TouchableOpacity
+                style={styles.addPageButton}
+                onPress={() => {
+                  console.log('Add New Page button pressed');
+                  setShowProfileSelector(false);
+                  // Small delay to ensure profile selector modal closes before page type selector opens
+                  setTimeout(() => {
+                    setShowPageTypeSelector(true);
+                  }, 100);
+                }}
+              >
+                <Text style={styles.addPageText}>+ Add New Page</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
     </View>
   );
 
@@ -1218,15 +2351,7 @@ export default function ProfileScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
-        {renderProfileHeader()}
-        {renderPersonalInfoCard()}
-        {renderPostsSection()}
-        {renderCricketStats()}
-        {renderSkillsSection()}
-        {renderExperienceSection()}
-        {renderAchievementsSection()}
-        {renderAwardsSection()}
-        {renderUpcomingMatches()}
+        {renderProfileContent()}
         
       </ScrollView>
       
@@ -1259,6 +2384,12 @@ export default function ProfileScreen() {
         onClose={() => setShowExperienceEditor(false)}
         onSave={handleExperienceSave}
         initialExperiences={experience}
+      />
+      
+      <PageTypeSelector
+        visible={showPageTypeSelector}
+        onClose={() => setShowPageTypeSelector(false)}
+        onSelectType={handlePageTypeSelect}
       />
     </SafeAreaView>
   );
@@ -1934,5 +3065,327 @@ const styles = StyleSheet.create({
   dropdownText: {
     fontSize: 16,
     fontWeight: '500',
+  },
+  // Instagram-style profile switching styles
+  profileSelectorButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+  },
+  dropdownArrow: {
+    fontSize: 12,
+    marginLeft: 8,
+    opacity: 0.7,
+  },
+  profileSelectorOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingTop: 60,
+  },
+  profileSelectorMenu: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    minWidth: 280,
+    maxWidth: 320,
+    maxHeight: '70%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  profileOption: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  profileOptionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  profileOptionIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  profileOptionText: {
+    flex: 1,
+  },
+  profileOptionName: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  profileOptionType: {
+    fontSize: 12,
+    opacity: 0.7,
+  },
+  selectedIndicator: {
+    fontSize: 16,
+    color: '#007AFF',
+    fontWeight: 'bold',
+  },
+  addPageButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#f8f9fa',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  addPageText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#007AFF',
+    textAlign: 'center',
+  },
+  // Page content styles
+  pageHeader: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  pageInfo: {
+    alignItems: 'center',
+  },
+  pageName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  pageDescription: {
+    fontSize: 16,
+    opacity: 0.8,
+    marginBottom: 16,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  pageStats: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  pageStat: {
+    fontSize: 14,
+    fontWeight: '600',
+    opacity: 0.8,
+  },
+  pageSection: {
+    marginBottom: 24,
+  },
+  facilitiesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  facilityItem: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  facilityText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  coachesCard: {
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  coachesText: {
+    fontSize: 14,
+    textAlign: 'center',
+    opacity: 0.8,
+  },
+  programsCard: {
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  programsText: {
+    fontSize: 14,
+    textAlign: 'center',
+    opacity: 0.8,
+  },
+  amenitiesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  amenityItem: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  amenityText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  ruleItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  ruleText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  eventsCard: {
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  eventsText: {
+    fontSize: 14,
+    textAlign: 'center',
+    opacity: 0.8,
+  },
+  bookingInfo: {
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  bookingText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  // Edit functionality styles
+  pageActionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 16,
+  },
+  pageEditButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pageEditButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  pageSaveButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pageSaveButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  pageCancelButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pageCancelButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  pageNameInput: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    textAlign: 'center',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  pageDescriptionInput: {
+    fontSize: 16,
+    marginBottom: 16,
+    textAlign: 'center',
+    lineHeight: 22,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minHeight: 60,
+  },
+  editStatsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'center',
+  },
+  editStatInput: {
+    fontSize: 14,
+    fontWeight: '600',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minWidth: 120,
+    textAlign: 'center',
+  },
+  // Comprehensive edit functionality styles
+  editSection: {
+    gap: 12,
+  },
+  editItem: {
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  editItemInput: {
+    fontSize: 14,
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 8,
+    minHeight: 40,
+  },
+  addButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  addButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  removeButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'flex-end',
+  },
+  removeButtonText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
