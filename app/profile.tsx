@@ -17,13 +17,21 @@ import {
 } from 'react-native';
 
 // Import existing components
+import { AchievementsEditor } from '@/components/ui/AchievementsEditor';
+import { AwardsEditor } from '@/components/ui/AwardsEditor';
+import { ExperienceEditor } from '@/components/ui/ExperienceEditor';
 import { InstagramBottomNav } from '@/components/ui/InstagramBottomNav';
 import { InstagramHeader } from '@/components/ui/InstagramHeader';
+import { SkillsEditor } from '@/components/ui/SkillsEditor';
 
 export default function ProfileScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeSection, setActiveSection] = useState('overview');
+  const [showSkillsEditor, setShowSkillsEditor] = useState(false);
+  const [showAwardsEditor, setShowAwardsEditor] = useState(false);
+  const [showAchievementsEditor, setShowAchievementsEditor] = useState(false);
+  const [showExperienceEditor, setShowExperienceEditor] = useState(false);
   const colorScheme = useColorScheme();
   const { width } = Dimensions.get('window');
   
@@ -220,7 +228,39 @@ export default function ProfileScreen() {
   };
 
   const handleEditSkills = () => {
-    Alert.alert('Edit Skills', 'Skills editor will open');
+    setShowSkillsEditor(true);
+  };
+
+  const handleEditAwards = () => {
+    setShowAwardsEditor(true);
+  };
+
+  const handleEditAchievements = () => {
+    setShowAchievementsEditor(true);
+  };
+
+  const handleEditExperience = () => {
+    setShowExperienceEditor(true);
+  };
+
+  const handleSkillsSave = (updatedSkills: any) => {
+    setSkills(updatedSkills);
+    setShowSkillsEditor(false);
+  };
+
+  const handleAwardsSave = (updatedAwards: any) => {
+    // Update awards state here
+    setShowAwardsEditor(false);
+  };
+
+  const handleAchievementsSave = (updatedAchievements: any) => {
+    // Update achievements state here
+    setShowAchievementsEditor(false);
+  };
+
+  const handleExperienceSave = (updatedExperience: any) => {
+    // Update experience state here
+    setShowExperienceEditor(false);
   };
 
   const handleViewPersonalInfo = () => {
@@ -831,12 +871,10 @@ export default function ProfileScreen() {
           Skills Rating
         </Text>
         <TouchableOpacity 
-          style={[styles.editSkillsButton, { 
-            backgroundColor: getColors(colorScheme).tint 
-          }]}
+          style={styles.editSkillsButton}
           onPress={handleEditSkills}
         >
-          <Text style={styles.editSkillsButtonText}>Edit</Text>
+          <Text style={styles.editSkillsButtonText}>✏️</Text>
         </TouchableOpacity>
       </View>
 
@@ -925,12 +963,10 @@ export default function ProfileScreen() {
           Experience
         </Text>
         <TouchableOpacity 
-          style={[styles.addButton, { 
-            backgroundColor: getColors(colorScheme).tint 
-          }]}
-          onPress={handleAddExperience}
+          style={styles.editButton}
+          onPress={handleEditExperience}
         >
-          <Text style={styles.addButtonText}>+ Add</Text>
+          <Text style={styles.editButtonText}>✏️</Text>
         </TouchableOpacity>
       </View>
 
@@ -973,12 +1009,10 @@ export default function ProfileScreen() {
           Achievements
         </Text>
         <TouchableOpacity 
-          style={[styles.addButton, { 
-            backgroundColor: getColors(colorScheme).tint 
-          }]}
-          onPress={handleAddAchievement}
+          style={styles.editButton}
+          onPress={handleEditAchievements}
         >
-          <Text style={styles.addButtonText}>+ Add</Text>
+          <Text style={styles.editButtonText}>✏️</Text>
         </TouchableOpacity>
       </View>
 
@@ -1016,12 +1050,10 @@ export default function ProfileScreen() {
           Awards
         </Text>
         <TouchableOpacity 
-          style={[styles.addButton, { 
-            backgroundColor: getColors(colorScheme).tint 
-          }]}
-          onPress={handleAddAward}
+          style={styles.editButton}
+          onPress={handleEditAwards}
         >
-          <Text style={styles.addButtonText}>+ Add</Text>
+          <Text style={styles.editButtonText}>✏️</Text>
         </TouchableOpacity>
       </View>
 
@@ -1132,6 +1164,35 @@ export default function ProfileScreen() {
       </ScrollView>
       
       {renderBottomNavigation()}
+      
+      {/* Editor Modals */}
+      <SkillsEditor
+        visible={showSkillsEditor}
+        onClose={() => setShowSkillsEditor(false)}
+        onSave={handleSkillsSave}
+        initialSkills={skills}
+      />
+      
+      <AwardsEditor
+        visible={showAwardsEditor}
+        onClose={() => setShowAwardsEditor(false)}
+        onSave={handleAwardsSave}
+        initialAwards={awards}
+      />
+      
+      <AchievementsEditor
+        visible={showAchievementsEditor}
+        onClose={() => setShowAchievementsEditor(false)}
+        onSave={handleAchievementsSave}
+        initialAchievements={achievements}
+      />
+      
+      <ExperienceEditor
+        visible={showExperienceEditor}
+        onClose={() => setShowExperienceEditor(false)}
+        onSave={handleExperienceSave}
+        initialExperiences={experience}
+      />
     </SafeAreaView>
   );
 }
@@ -1239,14 +1300,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   editButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
     alignItems: 'center',
   },
   editButtonText: {
-    color: 'white',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   shareButton: {
@@ -1510,13 +1570,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   editSkillsButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 6,
   },
   editSkillsButtonText: {
-    color: 'white',
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: '600',
   },
   skillsCard: {
