@@ -215,6 +215,62 @@ export default function ProfileScreen() {
     console.log('View match:', matchId);
   };
 
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Logout', 
+          style: 'destructive', 
+          onPress: () => {
+            // Clear user data and navigate to login
+            setUser({
+              id: '',
+              fullName: '',
+              username: '',
+              email: '',
+              avatar: '',
+              bio: '',
+              location: '',
+              organization: '',
+              verified: false,
+              joinedDate: new Date()
+            });
+            setUserStats({
+              posts: 0,
+              matches: 0,
+              followers: 0,
+              following: 0,
+              wins: 0,
+              losses: 0,
+              winRate: 0,
+              totalRuns: 0,
+              totalWickets: 0,
+              bestScore: 0,
+              bestBowling: '0/0',
+              achievements: 0
+            });
+            setCricketStats({
+              batting: { totalRuns: 0, matches: 0, centuries: 0, halfCenturies: 0, average: 0, highest: 0 },
+              bowling: { matches: 0, overs: 0, wickets: 0, hatTricks: 0, best: '0/0', average: 0 },
+              fielding: { matches: 0, catches: 0, stumpings: 0, runOuts: 0 }
+            });
+            setSkills({ batting: 0, bowling: 0, fielding: 0, overall: 0 });
+            setExperience([]);
+            setAchievements([]);
+            setAwards([]);
+            setUpcomingMatches([]);
+            
+            // Navigate to login screen
+            router.replace('/');
+          }
+        }
+      ]
+    );
+  };
+
   // Render functions
   const renderHeader = () => (
     <InstagramHeader 
@@ -1043,6 +1099,16 @@ export default function ProfileScreen() {
         {renderAchievementsSection()}
         {renderAwardsSection()}
         {renderUpcomingMatches()}
+        
+        {/* Logout Button */}
+        <View style={styles.logoutSection}>
+          <TouchableOpacity 
+            style={[styles.logoutButton, { backgroundColor: getColors(colorScheme).error }]}
+            onPress={handleLogout}
+          >
+            <Text style={styles.logoutButtonText}>Logout</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
       
       {renderBottomNavigation()}
@@ -1630,5 +1696,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     opacity: 0.8,
     fontWeight: '500',
+  },
+  logoutSection: {
+    marginTop: 20,
+    marginBottom: 20,
+    paddingHorizontal: 16,
+  },
+  logoutButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  logoutButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
