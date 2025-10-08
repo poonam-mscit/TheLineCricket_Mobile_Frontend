@@ -21,7 +21,6 @@ import { AchievementsEditor } from '@/components/ui/AchievementsEditor';
 import { AwardsEditor } from '@/components/ui/AwardsEditor';
 import { ExperienceEditor } from '@/components/ui/ExperienceEditor';
 import { InstagramBottomNav } from '@/components/ui/InstagramBottomNav';
-import { InstagramHeader } from '@/components/ui/InstagramHeader';
 import { SkillsEditor } from '@/components/ui/SkillsEditor';
 
 export default function ProfileScreen() {
@@ -333,21 +332,21 @@ export default function ProfileScreen() {
 
   // Render functions
   const renderHeader = () => (
-    <InstagramHeader 
-      user={user}
-      onNotificationPress={(notification) => {
-        console.log('Notification pressed:', notification);
-        router.push('/notifications');
-      }}
-      onMessagePress={(message) => {
-        console.log('Message pressed:', message);
-        router.push('/messages');
-      }}
-      onViewAllNotifications={() => router.push('/notifications')}
-      onViewAllMessages={() => router.push('/messages')}
-      onSearchPress={() => console.log('Search pressed')}
-      onProfilePress={() => console.log('Profile pressed')}
-    />
+    <View style={[styles.header, { backgroundColor: getColors(colorScheme).background }]}>
+      <TouchableOpacity 
+        style={styles.backButton}
+        onPress={() => router.back()}
+      >
+        <Text style={styles.backButtonText}>←</Text>
+      </TouchableOpacity>
+      <Text style={[styles.headerTitle, { color: getColors(colorScheme).text }]}>Profile</Text>
+      <TouchableOpacity 
+        style={styles.settingsButton}
+        onPress={() => console.log('Settings pressed')}
+      >
+        <Text style={styles.settingsButtonText}>⚙️</Text>
+      </TouchableOpacity>
+    </View>
   );
 
   const renderBottomNavigation = () => (
@@ -1796,5 +1795,44 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#374151',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  settingsButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  settingsButtonText: {
+    fontSize: 18,
+    color: '#374151',
   },
 });

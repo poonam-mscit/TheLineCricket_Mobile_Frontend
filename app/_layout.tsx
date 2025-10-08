@@ -64,6 +64,7 @@ function RootLayoutNav() {
         <Stack.Screen name="create-match" options={{ headerShown: false }} />
         <Stack.Screen name="create-post" options={{ headerShown: false }} />
         <Stack.Screen name="create-job" options={{ headerShown: false }} />
+        <Stack.Screen name="jobs" options={{ headerShown: false }} />
         <Stack.Screen name="ai-writer" options={{ headerShown: false }} />
         <Stack.Screen name="manual-writer" options={{ headerShown: false }} />
         <Stack.Screen name="signup" options={{ headerShown: false }} />

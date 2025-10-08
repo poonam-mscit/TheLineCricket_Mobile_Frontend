@@ -288,7 +288,6 @@ export default function HomeScreen() {
 
   const renderHeader = () => (
     <InstagramHeader 
-      user={user}
       onNotificationPress={(notification) => {
         console.log('Notification pressed:', notification);
         // Handle individual notification press
@@ -306,14 +305,6 @@ export default function HomeScreen() {
       onViewAllMessages={() => {
         console.log('Navigate to messages screen');
         router.push('/messages');
-      }}
-      onSearchPress={() => {
-        console.log('Search pressed');
-        // Could navigate to search screen or show search modal
-      }}
-      onProfilePress={() => {
-        console.log('Profile pressed');
-        router.push('/profile');
       }}
     />
   );
@@ -512,105 +503,6 @@ export default function HomeScreen() {
     </ScrollView>
   );
 
-  const renderJobsSection = () => (
-    <ScrollView style={styles.sectionContent}>
-      <View style={styles.jobsHeader}>
-        <Text style={[styles.sectionTitle, { color: getColors(colorScheme).text }]}>
-          Job Opportunities
-        </Text>
-        <TouchableOpacity 
-          style={[styles.postJobButton, { backgroundColor: getColors(colorScheme).primary }]}
-          onPress={() => router.push('/create-job')}
-        >
-          <Text style={styles.postJobButtonText}>+ Post Job</Text>
-        </TouchableOpacity>
-      </View>
-      
-      <View style={[styles.jobCard, { 
-        backgroundColor: getColors(colorScheme).card,
-        borderColor: getColors(colorScheme).border
-      }]}>
-        <View style={styles.jobCardHeader}>
-          <Text style={[styles.jobTitle, { color: getColors(colorScheme).text }]}>
-            🏏 Cricket Coach
-          </Text>
-          <Text style={[styles.jobCompany, { color: getColors(colorScheme).text }]}>
-            Mumbai Cricket Academy
-          </Text>
-        </View>
-        <Text style={[styles.jobLocation, { color: getColors(colorScheme).text }]}>
-          📍 Mumbai, Maharashtra
-        </Text>
-        <Text style={[styles.jobType, { color: getColors(colorScheme).text }]}>
-          💼 Full-time • ₹50,000 - ₹80,000
-        </Text>
-        <View style={styles.jobActions}>
-          <TouchableOpacity style={[styles.jobActionButton, { borderColor: getColors(colorScheme).border }]}>
-            <Text style={[styles.jobActionText, { color: getColors(colorScheme).text }]}>Apply</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.jobActionButton, { borderColor: getColors(colorScheme).border }]}>
-            <Text style={[styles.jobActionText, { color: getColors(colorScheme).text }]}>Save</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      
-      <View style={[styles.jobCard, { 
-        backgroundColor: getColors(colorScheme).card,
-        borderColor: getColors(colorScheme).border
-      }]}>
-        <View style={styles.jobCardHeader}>
-          <Text style={[styles.jobTitle, { color: getColors(colorScheme).text }]}>
-            📊 Cricket Analyst
-          </Text>
-          <Text style={[styles.jobCompany, { color: getColors(colorScheme).text }]}>
-            Delhi Capitals
-          </Text>
-        </View>
-        <Text style={[styles.jobLocation, { color: getColors(colorScheme).text }]}>
-          📍 Delhi, NCR
-        </Text>
-        <Text style={[styles.jobType, { color: getColors(colorScheme).text }]}>
-          💼 Full-time • ₹60,000 - ₹90,000
-        </Text>
-        <View style={styles.jobActions}>
-          <TouchableOpacity style={[styles.jobActionButton, { borderColor: getColors(colorScheme).border }]}>
-            <Text style={[styles.jobActionText, { color: getColors(colorScheme).text }]}>Apply</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.jobActionButton, { borderColor: getColors(colorScheme).border }]}>
-            <Text style={[styles.jobActionText, { color: getColors(colorScheme).text }]}>Save</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      
-      <View style={[styles.jobCard, { 
-        backgroundColor: getColors(colorScheme).card,
-        borderColor: getColors(colorScheme).border
-      }]}>
-        <View style={styles.jobCardHeader}>
-          <Text style={[styles.jobTitle, { color: getColors(colorScheme).text }]}>
-            🎯 Bowling Coach
-          </Text>
-          <Text style={[styles.jobCompany, { color: getColors(colorScheme).text }]}>
-            Royal Challengers Bangalore
-          </Text>
-        </View>
-        <Text style={[styles.jobLocation, { color: getColors(colorScheme).text }]}>
-          📍 Bangalore, Karnataka
-        </Text>
-        <Text style={[styles.jobType, { color: getColors(colorScheme).text }]}>
-          💼 Part-time • ₹30,000 - ₹50,000
-        </Text>
-        <View style={styles.jobActions}>
-          <TouchableOpacity style={[styles.jobActionButton, { borderColor: getColors(colorScheme).border }]}>
-            <Text style={[styles.jobActionText, { color: getColors(colorScheme).text }]}>Apply</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.jobActionButton, { borderColor: getColors(colorScheme).border }]}>
-            <Text style={[styles.jobActionText, { color: getColors(colorScheme).text }]}>Save</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </ScrollView>
-  );
 
   const renderProfileSection = () => (
     <ScrollView style={styles.sectionContent}>
@@ -688,8 +580,6 @@ export default function HomeScreen() {
         return renderSearchSection();
       case 'create':
         return renderCreateSection();
-      case 'jobs':
-        return renderJobsSection();
       case 'profile':
         return renderProfileSection();
       default:
@@ -852,14 +742,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 16,
   },
-  jobCard: {
-    padding: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 12,
-    fontSize: 16,
-    fontWeight: '600',
-  },
   logoutButton: {
     padding: 16,
     borderRadius: 8,
@@ -870,71 +752,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  // Job section styles
-  jobsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  postJobButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  postJobButtonText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  jobCard: {
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  jobCardHeader: {
-    marginBottom: 8,
-  },
-  jobTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  jobCompany: {
-    fontSize: 14,
-    opacity: 0.8,
-  },
-  jobLocation: {
-    fontSize: 12,
-    opacity: 0.7,
-    marginBottom: 4,
-  },
-  jobType: {
-    fontSize: 12,
-    opacity: 0.7,
-    marginBottom: 12,
-  },
-  jobActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  jobActionButton: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  jobActionText: {
-    fontSize: 12,
-    fontWeight: '600',
   },
 });

@@ -198,6 +198,8 @@ export function InstagramBottomNav({
                 handleCreatePress();
               } else if (item.key === 'search') {
                 router.push('/search');
+              } else if (item.key === 'jobs') {
+                router.push('/jobs');
               } else {
                 onSectionChange(item.key);
               }

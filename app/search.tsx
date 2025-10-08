@@ -20,7 +20,6 @@ import {
 
 // Import existing components
 import { InstagramBottomNav } from '@/components/ui/InstagramBottomNav';
-import { InstagramHeader } from '@/components/ui/InstagramHeader';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { SearchResultCard } from '@/components/ui/SearchResultCard';
 
@@ -292,21 +291,18 @@ export default function SearchScreen() {
   };
 
   const renderHeader = () => (
-    <InstagramHeader 
-      user={user}
-      onNotificationPress={(notification) => {
-        console.log('Notification pressed:', notification);
-        router.push('/notifications');
-      }}
-      onMessagePress={(message) => {
-        console.log('Message pressed:', message);
-        router.push('/messages');
-      }}
-      onViewAllNotifications={() => router.push('/notifications')}
-      onViewAllMessages={() => router.push('/messages')}
-      onSearchPress={() => console.log('Search pressed')}
-      onProfilePress={() => router.push('/profile')}
-    />
+    <View style={[styles.header, { backgroundColor: getColors(colorScheme).background }]}>
+      <View style={styles.headerLeft}>
+        <Text style={[styles.logo, { color: getColors(colorScheme).text }]}>🏏</Text>
+        <Text style={[styles.appName, { color: getColors(colorScheme).text }]}>The Line Cricket</Text>
+      </View>
+      <TouchableOpacity 
+        style={styles.searchButton}
+        onPress={() => console.log('Search pressed')}
+      >
+        <Text style={styles.searchButtonText}>🔍</Text>
+      </TouchableOpacity>
+    </View>
   );
 
   const renderSearchInput = () => (
@@ -635,5 +631,38 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#10B981',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logo: {
+    fontSize: 24,
+    marginRight: 8,
+  },
+  appName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  searchButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchButtonText: {
+    fontSize: 18,
+    color: '#374151',
   },
 });
