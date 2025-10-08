@@ -2141,8 +2141,7 @@ export default function ProfileScreen() {
                 style={styles.dropdownItem}
                 onPress={() => {
                   setShowDropdownMenu(false);
-                  // Navigate to settings
-                  Alert.alert('Settings', 'Settings screen coming soon!');
+                  router.push('/settings');
                 }}
               >
                 <Text style={[styles.dropdownText, { 
@@ -2156,8 +2155,7 @@ export default function ProfileScreen() {
                 style={styles.dropdownItem}
                 onPress={() => {
                   setShowDropdownMenu(false);
-                  // Navigate to about
-                  Alert.alert('About', 'About screen coming soon!');
+                  router.push('/about');
                 }}
               >
                 <Text style={[styles.dropdownText, { 
