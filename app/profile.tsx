@@ -22,7 +22,6 @@ import { InstagramHeader } from '@/components/ui/InstagramHeader';
 export default function ProfileScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
   const [activeSection, setActiveSection] = useState('overview');
   const colorScheme = useColorScheme();
   const { width } = Dimensions.get('window');
@@ -184,17 +183,9 @@ export default function ProfileScreen() {
   };
 
   const handleEditProfile = () => {
-    setIsEditing(true);
+    router.push('/edit-profile');
   };
 
-  const handleSaveProfile = () => {
-    setIsEditing(false);
-    Alert.alert('Success', 'Profile updated successfully!');
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-  };
 
   const handleAddExperience = () => {
     Alert.alert('Add Experience', 'Experience form will open');
