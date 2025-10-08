@@ -50,20 +50,6 @@ export default function JobsScreen() {
     // Add job save logic here
   };
 
-  const renderHeader = () => (
-    <View style={[styles.header, { backgroundColor: getColors(colorScheme).background }]}>
-      <View style={styles.headerLeft}>
-        <Text style={[styles.logo, { color: getColors(colorScheme).text }]}>🏏</Text>
-        <Text style={[styles.appName, { color: getColors(colorScheme).text }]}>The Line Cricket</Text>
-      </View>
-      <TouchableOpacity 
-        style={styles.jobsButton}
-        onPress={() => console.log('Jobs pressed')}
-      >
-        <Text style={styles.jobsButtonText}>💼</Text>
-      </TouchableOpacity>
-    </View>
-  );
 
   const renderJobsContent = () => (
     <ScrollView 
@@ -274,7 +260,6 @@ export default function JobsScreen() {
     <SafeAreaView style={[styles.container, { 
       backgroundColor: getColors(colorScheme).background
     }]}>
-      {renderHeader()}
       {renderJobsContent()}
       {renderBottomNavigation()}
     </SafeAreaView>

@@ -290,20 +290,6 @@ export default function SearchScreen() {
     searchInputRef.current?.focus();
   };
 
-  const renderHeader = () => (
-    <View style={[styles.header, { backgroundColor: getColors(colorScheme).background }]}>
-      <View style={styles.headerLeft}>
-        <Text style={[styles.logo, { color: getColors(colorScheme).text }]}>🏏</Text>
-        <Text style={[styles.appName, { color: getColors(colorScheme).text }]}>The Line Cricket</Text>
-      </View>
-      <TouchableOpacity 
-        style={styles.searchButton}
-        onPress={() => console.log('Search pressed')}
-      >
-        <Text style={styles.searchButtonText}>🔍</Text>
-      </TouchableOpacity>
-    </View>
-  );
 
   const renderSearchInput = () => (
     <View style={[styles.searchContainer, { backgroundColor: getColors(colorScheme).background }]}>
@@ -470,8 +456,6 @@ export default function SearchScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: getColors(colorScheme).background }]}>
-      {renderHeader()}
-      
       <ScrollView 
         style={styles.content}
         refreshControl={

@@ -331,23 +331,6 @@ export default function ProfileScreen() {
   };
 
   // Render functions
-  const renderHeader = () => (
-    <View style={[styles.header, { backgroundColor: getColors(colorScheme).background }]}>
-      <TouchableOpacity 
-        style={styles.backButton}
-        onPress={() => router.back()}
-      >
-        <Text style={styles.backButtonText}>←</Text>
-      </TouchableOpacity>
-      <Text style={[styles.headerTitle, { color: getColors(colorScheme).text }]}>Profile</Text>
-      <TouchableOpacity 
-        style={styles.settingsButton}
-        onPress={() => console.log('Settings pressed')}
-      >
-        <Text style={styles.settingsButtonText}>⚙️</Text>
-      </TouchableOpacity>
-    </View>
-  );
 
   const renderBottomNavigation = () => (
     <InstagramBottomNav 
@@ -1127,8 +1110,6 @@ export default function ProfileScreen() {
     <SafeAreaView style={[styles.container, { 
       backgroundColor: getColors(colorScheme).background
     }]}>
-      {renderHeader()}
-      
       <ScrollView 
         style={styles.content}
         refreshControl={
