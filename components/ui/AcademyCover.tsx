@@ -26,6 +26,10 @@ export function AcademyCover({
     return stars;
   };
 
+  const formatRating = (rating: number) => {
+    return rating.toFixed(1);
+  };
+
   return (
     <View style={styles.container}>
       {coverImage ? (
@@ -71,6 +75,7 @@ export function AcademyCover({
               <View style={styles.stars}>
                 {renderStars(rating)}
               </View>
+              <Text style={styles.ratingText}>{formatRating(rating)}</Text>
               <Text style={styles.reviews}>({reviews} reviews)</Text>
             </View>
           )}
@@ -173,6 +178,13 @@ const styles = StyleSheet.create({
   star: {
     fontSize: 14,
     marginRight: 2,
+  },
+  ratingText: {
+    fontSize: 16,
+    color: 'white',
+    fontWeight: '600',
+    marginLeft: 4,
+    marginRight: 8,
   },
   reviews: {
     fontSize: 14,

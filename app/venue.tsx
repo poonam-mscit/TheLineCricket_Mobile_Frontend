@@ -1,7 +1,8 @@
 import { Text } from '@/components/Themed';
-import { ContactInfoSection } from '@/components/ui/ContactInfoSection';
 import { PageAboutSection } from '@/components/ui/PageAboutSection';
-import { PageHeader } from '@/components/ui/PageHeader';
+import { VenueAvailability } from '@/components/ui/VenueAvailability';
+import { VenueCover } from '@/components/ui/VenueCover';
+import { VenuePricing } from '@/components/ui/VenuePricing';
 import { getColors } from '@/constants/Colors';
 import { VenueData } from '@/types/pages';
 import { getPageById, savePage } from '@/utils/pageStorage';
@@ -14,7 +15,6 @@ import {
     ScrollView,
     StatusBar,
     StyleSheet,
-    TouchableOpacity,
     useColorScheme,
     View
 } from 'react-native';
@@ -127,15 +127,6 @@ export default function VenueScreen() {
       backgroundColor: getColors(colorScheme).background,
       paddingTop: StatusBar.currentHeight || 0
     }]}>
-      <PageHeader
-        onBack={handleBack}
-        onEdit={handleEdit}
-        isEditing={isEditing}
-        onSave={handleSave}
-        onCancel={handleCancel}
-        isSaving={isSaving}
-      />
-      
       <ScrollView 
         style={styles.content}
         showsVerticalScrollIndicator={false}
@@ -148,6 +139,17 @@ export default function VenueScreen() {
           />
         }
       >
+        <VenueCover
+          name={venue.name}
+          type={venue.type}
+          logo={venue.logo || null}
+          coverImage={venue.coverImage || null}
+          verified={venue.verified}
+          rating={venue.rating}
+          reviews={venue.reviews}
+          isAvailable={venue.isAvailable}
+        />
+
         <PageAboutSection
           description={venue.description}
           stats={{
@@ -159,28 +161,17 @@ export default function VenueScreen() {
           onDescriptionChange={handleDescriptionChange}
         />
 
-        <ContactInfoSection
-          contact={venue.contact}
-          isEditing={isEditing}
-          onContactChange={handleContactChange}
+        <VenuePricing
+          pricing={venue.pricing}
+          onSelectPricing={(pricingId) => Alert.alert('Pricing', `Select pricing ${pricingId}`)}
+          onBook={(pricingId) => Alert.alert('Book', `Book pricing ${pricingId}`)}
         />
 
-        {!isEditing && (
-          <View style={styles.actionButtons}>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.bookButton]}
-              onPress={() => Alert.alert('Book', 'Booking feature coming soon!')}
-            >
-              <Text style={styles.actionButtonText}>📅 Book Now</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.shareButton]}
-              onPress={() => Alert.alert('Share', 'Share feature coming soon!')}
-            >
-              <Text style={styles.actionButtonText}>🔗 Share</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        <VenueAvailability
+          availability={venue.availability}
+          onSelectTimeSlot={(date, time) => Alert.alert('Time Slot', `Select ${time} on ${date}`)}
+          onBookSlot={(date, time) => Alert.alert('Book Slot', `Book ${time} on ${date}`)}
+        />
         
         <View style={styles.bottomPadding} />
       </ScrollView>

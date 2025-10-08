@@ -1,8 +1,8 @@
 import { Text } from '@/components/Themed';
 import { CommunityCover } from '@/components/ui/CommunityCover';
-import { ContactInfoSection } from '@/components/ui/ContactInfoSection';
+import { CommunityEvents } from '@/components/ui/CommunityEvents';
+import { CommunityMembers } from '@/components/ui/CommunityMembers';
 import { PageAboutSection } from '@/components/ui/PageAboutSection';
-import { PageHeader } from '@/components/ui/PageHeader';
 import { getColors } from '@/constants/Colors';
 import { CommunityData } from '@/types/pages';
 import { getPageById, savePage } from '@/utils/pageStorage';
@@ -15,7 +15,6 @@ import {
     ScrollView,
     StatusBar,
     StyleSheet,
-    TouchableOpacity,
     useColorScheme,
     View
 } from 'react-native';
@@ -173,28 +172,18 @@ export default function CommunityScreen() {
           onDescriptionChange={handleDescriptionChange}
         />
 
-        <ContactInfoSection
-          contact={community.contact}
-          isEditing={isEditing}
-          onContactChange={handleContactChange}
+        <CommunityMembers
+          members={community.members}
+          totalMembers={community.members}
+          onMemberPress={(memberId) => Alert.alert('Member', `View member ${memberId}`)}
+          onViewAll={() => Alert.alert('Members', 'View all members feature coming soon!')}
         />
 
-        {!isEditing && (
-          <View style={styles.actionButtons}>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.joinButton]}
-              onPress={() => Alert.alert('Join', 'Join feature coming soon!')}
-            >
-              <Text style={styles.actionButtonText}>Join Community</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.shareButton]}
-              onPress={() => Alert.alert('Share', 'Share feature coming soon!')}
-            >
-              <Text style={styles.actionButtonText}>🔗 Share</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        <CommunityEvents
+          events={community.events}
+          onEventPress={(eventId) => Alert.alert('Event', `View event ${eventId}`)}
+          onJoinEvent={(eventId) => Alert.alert('Join Event', `Join event ${eventId}`)}
+        />
         
         <View style={styles.bottomPadding} />
       </ScrollView>

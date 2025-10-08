@@ -1,11 +1,12 @@
 import { Text } from '@/components/Themed';
+import { AcademyActionButtons } from '@/components/ui/AcademyActionButtons';
 import { AcademyCoaches } from '@/components/ui/AcademyCoaches';
+import { AcademyContact } from '@/components/ui/AcademyContact';
 import { AcademyCover } from '@/components/ui/AcademyCover';
 import { AcademyFacilities } from '@/components/ui/AcademyFacilities';
+import { AcademyHeader } from '@/components/ui/AcademyHeader';
 import { AcademyPrograms } from '@/components/ui/AcademyPrograms';
-import { ContactInfoSection } from '@/components/ui/ContactInfoSection';
 import { PageAboutSection } from '@/components/ui/PageAboutSection';
-import { PageHeader } from '@/components/ui/PageHeader';
 import { getColors } from '@/constants/Colors';
 import { AcademyData, AcademyFacility } from '@/types/pages';
 import { getPageById, savePage } from '@/utils/pageStorage';
@@ -18,7 +19,6 @@ import {
     ScrollView,
     StatusBar,
     StyleSheet,
-    TouchableOpacity,
     useColorScheme,
     View
 } from 'react-native';
@@ -208,7 +208,7 @@ export default function AcademyScreen() {
       backgroundColor: getColors(colorScheme).background,
       paddingTop: StatusBar.currentHeight || 0
     }]}>
-      <PageHeader
+      <AcademyHeader
         onBack={handleBack}
         onEdit={handleEdit}
         isEditing={isEditing}
@@ -270,38 +270,24 @@ export default function AcademyScreen() {
           onEnroll={handleEnroll}
         />
 
-        <ContactInfoSection
+        <AcademyContact
           contact={academy.contact}
           isEditing={isEditing}
           onContactChange={handleContactChange}
         />
-
-        {/* Action Buttons */}
-        {!isEditing && (
-          <View style={styles.actionButtons}>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.contactButton]}
-              onPress={handleContact}
-            >
-              <Text style={styles.actionButtonText}>📞 Contact</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.followButton]}
-              onPress={handleFollow}
-            >
-              <Text style={styles.actionButtonText}>➕ Follow</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.shareButton]}
-              onPress={handleShare}
-            >
-              <Text style={styles.actionButtonText}>🔗 Share</Text>
-            </TouchableOpacity>
-          </View>
-        )}
         
         <View style={styles.bottomPadding} />
       </ScrollView>
+
+      {/* Action Buttons */}
+      {!isEditing && (
+        <AcademyActionButtons
+          contact={academy.contact}
+          onContactPress={handleContact}
+          onFollowPress={handleFollow}
+          onSharePress={handleShare}
+        />
+      )}
     </SafeAreaView>
   );
 }
