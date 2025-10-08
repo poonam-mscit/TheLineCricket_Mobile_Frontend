@@ -1109,11 +1109,103 @@ export default function ProfileScreen() {
     </View>
   );
 
+  // Instagram-style header with user name and burger menu
+  const renderInstagramHeader = () => (
+    <View style={[styles.instagramHeader, { 
+      backgroundColor: getColors(colorScheme).background,
+      borderBottomColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
+    }]}>
+      <Text style={[styles.headerTitle, { 
+        color: getColors(colorScheme).text 
+      }]}>
+        {user.fullName}
+      </Text>
+      
+      <TouchableOpacity 
+        style={styles.burgerMenuButton}
+        onPress={() => setShowDropdownMenu(!showDropdownMenu)}
+      >
+        <Text style={[styles.burgerIcon, { 
+          color: getColors(colorScheme).text 
+        }]}>
+          ☰
+        </Text>
+      </TouchableOpacity>
+
+      {/* Dropdown Menu */}
+      {showDropdownMenu && (
+        <Modal
+          transparent={true}
+          visible={showDropdownMenu}
+          animationType="fade"
+          onRequestClose={() => setShowDropdownMenu(false)}
+        >
+          <TouchableOpacity 
+            style={styles.dropdownOverlay}
+            activeOpacity={1}
+            onPress={() => setShowDropdownMenu(false)}
+          >
+            <View style={[styles.dropdownMenu, { 
+              backgroundColor: getColors(colorScheme).card,
+              borderColor: colorScheme === 'dark' ? '#333' : '#e0e0e0'
+            }]}>
+              <TouchableOpacity 
+                style={styles.dropdownItem}
+                onPress={() => {
+                  setShowDropdownMenu(false);
+                  // Navigate to settings
+                  Alert.alert('Settings', 'Settings screen coming soon!');
+                }}
+              >
+                <Text style={[styles.dropdownText, { 
+                  color: getColors(colorScheme).text 
+                }]}>
+                  ⚙️ Settings
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.dropdownItem}
+                onPress={() => {
+                  setShowDropdownMenu(false);
+                  // Navigate to about
+                  Alert.alert('About', 'About screen coming soon!');
+                }}
+              >
+                <Text style={[styles.dropdownText, { 
+                  color: getColors(colorScheme).text 
+                }]}>
+                  ℹ️ About
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.dropdownItem}
+                onPress={() => {
+                  setShowDropdownMenu(false);
+                  handleLogout();
+                }}
+              >
+                <Text style={[styles.dropdownText, { 
+                  color: '#ff4444' 
+                }]}>
+                  🚪 Logout
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
+    </View>
+  );
+
   return (
     <SafeAreaView style={[styles.container, { 
       backgroundColor: getColors(colorScheme).background,
       paddingTop: StatusBar.currentHeight || 0
     }]}>
+      {/* Instagram-style Header */}
+      {renderInstagramHeader()}
       <ScrollView 
         style={styles.content}
         refreshControl={
@@ -1136,15 +1228,6 @@ export default function ProfileScreen() {
         {renderAwardsSection()}
         {renderUpcomingMatches()}
         
-        {/* Logout Button */}
-        <View style={styles.logoutSection}>
-          <TouchableOpacity 
-            style={[styles.logoutButton, { backgroundColor: getColors(colorScheme).error }]}
-            onPress={handleLogout}
-          >
-            <Text style={styles.logoutButtonText}>Logout</Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
       
       {renderBottomNavigation()}
@@ -1760,27 +1843,6 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     fontWeight: '500',
   },
-  logoutSection: {
-    marginTop: 20,
-    marginBottom: 20,
-    paddingHorizontal: 16,
-  },
-  logoutButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  logoutButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1819,5 +1881,57 @@ const styles = StyleSheet.create({
   settingsButtonText: {
     fontSize: 18,
     color: '#374151',
+  },
+  // Instagram-style header styles
+  instagramHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  burgerMenuButton: {
+    padding: 8,
+  },
+  burgerIcon: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  dropdownOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+    paddingTop: 60,
+    paddingRight: 16,
+  },
+  dropdownMenu: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    minWidth: 150,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  dropdownItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  dropdownText: {
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
