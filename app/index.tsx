@@ -1,17 +1,22 @@
 import { Text, View } from '@/components/Themed';
 import { getColors } from '@/constants/Colors';
+import { useAuth } from '@/src/hooks/useAuth';
 import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, SafeAreaView, StatusBar, StyleSheet, TextInput, TouchableOpacity, useColorScheme } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, SafeAreaView, StatusBar, StyleSheet, TextInput, TouchableOpacity, useColorScheme } from 'react-native';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const colorScheme = useColorScheme();
+  
+  // Use real authentication
+  const { login, loading, error } = useAuth();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     console.log('🔑 Login form submitted');
     
+    // Validation
     if (!email || !password) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
@@ -22,8 +27,20 @@ export default function LoginScreen() {
       return;
     }
 
-    console.log('🔑 Validation passed, navigating to home...');
-    router.replace('/home');
+    try {
+      console.log('🔑 Attempting login with backend...');
+      const result = await login(email, password);
+      
+      if (result.success) {
+        console.log('✅ Login successful, navigating to home...');
+        router.replace('/home');
+      } else {
+        Alert.alert('Login Failed', 'Invalid credentials. Please try again.');
+      }
+    } catch (error) {
+      console.error('❌ Login error:', error);
+      Alert.alert('Login Failed', error.message || 'An error occurred during login. Please try again.');
+    }
   };
 
   return (
@@ -90,12 +107,23 @@ export default function LoginScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity 
-          style={[styles.loginButton, { backgroundColor: getColors(colorScheme).tint }]}
+          style={[
+            styles.loginButton, 
+            { 
+              backgroundColor: loading ? getColors(colorScheme).border : getColors(colorScheme).tint,
+              opacity: loading ? 0.7 : 1
+            }
+          ]}
           onPress={handleLogin}
+          disabled={loading}
         >
-          <Text style={styles.loginButtonText}>
-            Sign In
-          </Text>
+          {loading ? (
+            <ActivityIndicator color="white" size="small" />
+          ) : (
+            <Text style={styles.loginButtonText}>
+              Sign In
+            </Text>
+          )}
         </TouchableOpacity>
 
         <View style={styles.signupContainer}>

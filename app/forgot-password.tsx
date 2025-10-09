@@ -1,8 +1,9 @@
 import { Text, View } from '@/components/Themed';
 import { getColors } from '@/constants/Colors';
+import { useAuth } from '@/src/hooks/useAuth';
 import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, SafeAreaView, StatusBar, StyleSheet, TextInput, TouchableOpacity, useColorScheme } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, SafeAreaView, StatusBar, StyleSheet, TextInput, TouchableOpacity, useColorScheme } from 'react-native';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
@@ -11,8 +12,11 @@ export default function ForgotPasswordScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [step, setStep] = useState(1); // 1: email, 2: reset code, 3: new password
   const colorScheme = useColorScheme();
+  
+  // Use real authentication
+  const { resetPassword, loading, error } = useAuth();
 
-  const handleSendResetCode = () => {
+  const handleSendResetCode = async () => {
     if (!email) {
       Alert.alert('Error', 'Please enter your email address');
       return;
@@ -23,9 +27,20 @@ export default function ForgotPasswordScreen() {
       return;
     }
 
-    // Here you would typically send the reset code to the email
-    Alert.alert('Reset Code Sent', 'A reset code has been sent to your email address');
-    setStep(2);
+    try {
+      console.log('📧 Sending password reset email...');
+      const result = await resetPassword(email);
+      
+      if (result.success) {
+        Alert.alert('Reset Code Sent', 'A reset code has been sent to your email address');
+        setStep(2);
+      } else {
+        Alert.alert('Error', 'Failed to send reset code. Please try again.');
+      }
+    } catch (error) {
+      console.error('❌ Password reset error:', error);
+      Alert.alert('Error', error.message || 'Failed to send reset code. Please try again.');
+    }
   };
 
   const handleVerifyResetCode = () => {
@@ -96,10 +111,21 @@ export default function ForgotPasswordScreen() {
       </View>
 
       <TouchableOpacity 
-        style={[styles.button, { backgroundColor: getColors(colorScheme).tint }]}
+        style={[
+          styles.button, 
+          { 
+            backgroundColor: loading ? getColors(colorScheme).border : getColors(colorScheme).tint,
+            opacity: loading ? 0.7 : 1
+          }
+        ]}
         onPress={handleSendResetCode}
+        disabled={loading}
       >
-        <Text style={styles.buttonText}>Send Reset Code</Text>
+        {loading ? (
+          <ActivityIndicator color="white" size="small" />
+        ) : (
+          <Text style={styles.buttonText}>Send Reset Code</Text>
+        )}
       </TouchableOpacity>
     </>
   );

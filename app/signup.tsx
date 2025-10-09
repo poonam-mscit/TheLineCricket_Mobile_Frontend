@@ -1,8 +1,9 @@
 import { Text, View } from '@/components/Themed';
 import { getColors } from '@/constants/Colors';
+import { useAuth } from '@/src/hooks/useAuth';
 import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StatusBar, StyleSheet, TextInput, TouchableOpacity, useColorScheme } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StatusBar, StyleSheet, TextInput, TouchableOpacity, useColorScheme } from 'react-native';
 
 export default function SignupScreen() {
   const [fullName, setFullName] = useState('');
@@ -13,8 +14,11 @@ export default function SignupScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const colorScheme = useColorScheme();
+  
+  // Use real authentication
+  const { register, loading, error } = useAuth();
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     console.log('📝 Signup form submitted');
     
     // Validation
@@ -44,8 +48,29 @@ export default function SignupScreen() {
       return;
     }
 
-    console.log('📝 Validation passed, navigating to home...');
-    router.replace('/home');
+    try {
+      console.log('📝 Attempting signup with backend...');
+      const userData = {
+        fullName,
+        username,
+        email,
+        age: ageNum,
+        location,
+        password
+      };
+      
+      const result = await register(userData);
+      
+      if (result.success) {
+        console.log('✅ Signup successful, navigating to home...');
+        router.replace('/home');
+      } else {
+        Alert.alert('Signup Failed', 'Account creation failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('❌ Signup error:', error);
+      Alert.alert('Signup Failed', error.message || 'An error occurred during signup. Please try again.');
+    }
   };
 
   return (
@@ -198,12 +223,23 @@ export default function SignupScreen() {
           </View>
 
           <TouchableOpacity 
-            style={[styles.signupButton, { backgroundColor: getColors(colorScheme).tint }]}
+            style={[
+              styles.signupButton, 
+              { 
+                backgroundColor: loading ? getColors(colorScheme).border : getColors(colorScheme).tint,
+                opacity: loading ? 0.7 : 1
+              }
+            ]}
             onPress={handleSignup}
+            disabled={loading}
           >
-            <Text style={styles.signupButtonText}>
-              Create Account
-            </Text>
+            {loading ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              <Text style={styles.signupButtonText}>
+                Create Account
+              </Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.loginContainer}>
