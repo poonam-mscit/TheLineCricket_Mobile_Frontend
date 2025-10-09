@@ -11,7 +11,6 @@ import {
     ActivityIndicator,
     Alert,
     Dimensions,
-    Modal,
     RefreshControl,
     SafeAreaView,
     ScrollView,
@@ -23,11 +22,6 @@ import {
 } from 'react-native';
 
 // Import existing components
-import { CommunityCRUDDemo } from '@/components/CommunityCRUDDemo';
-import { JobCRUDDemo } from '@/components/JobCRUDDemo';
-import { MatchCRUDDemo } from '@/components/MatchCRUDDemo';
-import { PostCRUDDemo } from '@/components/PostCRUDDemo';
-import { VenueCRUDDemo } from '@/components/VenueCRUDDemo';
 import { CreateMatchBox } from '@/components/ui/CreateMatchBox';
 import { CreatePostBox } from '@/components/ui/CreatePostBox';
 import { FilterOptions } from '@/components/ui/FilterOptions';
@@ -44,12 +38,6 @@ export default function HomeScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showLiveMatches, setShowLiveMatches] = useState(true);
-  const [showCRUDDemo, setShowCRUDDemo] = useState(false);
-  const [showMatchDemo, setShowMatchDemo] = useState(false);
-  const [showPostDemo, setShowPostDemo] = useState(false);
-  const [showCommunityDemo, setShowCommunityDemo] = useState(false);
-  const [showJobDemo, setShowJobDemo] = useState(false);
-  const [showVenueDemo, setShowVenueDemo] = useState(false);
   const colorScheme = useColorScheme();
   const scrollViewRef = useRef<ScrollView>(null);
   const { width } = Dimensions.get('window');
@@ -282,64 +270,6 @@ export default function HomeScreen() {
         </Text>
       </View>
 
-      {/* CRUD Demo Section */}
-      <View style={[styles.crudDemoSection, {
-        backgroundColor: getColors(colorScheme).card,
-        borderColor: getColors(colorScheme).border
-      }]}>
-        <Text style={[styles.crudDemoTitle, {
-          color: getColors(colorScheme).text
-        }]}>
-          Database CRUD Operations
-        </Text>
-        <Text style={[styles.crudDemoDescription, {
-          color: getColors(colorScheme).text
-        }]}>
-          Test Create, Read, Update, Delete operations for all entities
-        </Text>
-        <View style={styles.crudDemoButtons}>
-          <TouchableOpacity
-            style={[styles.crudDemoButton, {
-              backgroundColor: getColors(colorScheme).tint
-            }]}
-            onPress={() => setShowMatchDemo(true)}
-          >
-            <Text style={styles.crudDemoButtonText}>Match CRUD</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.crudDemoButton, {
-              backgroundColor: '#ffa502'
-            }]}
-            onPress={() => setShowPostDemo(true)}
-          >
-            <Text style={styles.crudDemoButtonText}>Post CRUD</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.crudDemoButton, {
-              backgroundColor: '#2ed573'
-            }]}
-            onPress={() => setShowCommunityDemo(true)}
-          >
-            <Text style={styles.crudDemoButtonText}>Community CRUD</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.crudDemoButton, {
-              backgroundColor: '#4a69bd'
-            }]}
-            onPress={() => setShowJobDemo(true)}
-          >
-            <Text style={styles.crudDemoButtonText}>Job CRUD</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.crudDemoButton, {
-              backgroundColor: '#9b59b6'
-            }]}
-            onPress={() => setShowVenueDemo(true)}
-          >
-            <Text style={styles.crudDemoButtonText}>Venue CRUD</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
 
       {/* Live Matches Section */}
       {showLiveMatches && matches.length > 0 && (
@@ -584,95 +514,6 @@ export default function HomeScreen() {
       {renderActiveSection()}
       {renderBottomNavigation()}
 
-      {/* Match CRUD Demo Modal */}
-      <Modal
-        visible={showMatchDemo}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowMatchDemo(false)}
-      >
-        <MatchCRUDDemo />
-        <TouchableOpacity 
-          style={[styles.closeCRUDDemoButton, {
-            backgroundColor: getColors(colorScheme).tint
-          }]}
-          onPress={() => setShowMatchDemo(false)}
-        >
-          <Text style={styles.closeCRUDDemoButtonText}>Close Demo</Text>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Post CRUD Demo Modal */}
-      <Modal
-        visible={showPostDemo}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowPostDemo(false)}
-      >
-        <PostCRUDDemo />
-        <TouchableOpacity 
-          style={[styles.closeCRUDDemoButton, {
-            backgroundColor: getColors(colorScheme).tint
-          }]}
-          onPress={() => setShowPostDemo(false)}
-        >
-          <Text style={styles.closeCRUDDemoButtonText}>Close Demo</Text>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Community CRUD Demo Modal */}
-      <Modal
-        visible={showCommunityDemo}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowCommunityDemo(false)}
-      >
-        <CommunityCRUDDemo />
-        <TouchableOpacity 
-          style={[styles.closeCRUDDemoButton, {
-            backgroundColor: getColors(colorScheme).tint
-          }]}
-          onPress={() => setShowCommunityDemo(false)}
-        >
-          <Text style={styles.closeCRUDDemoButtonText}>Close Demo</Text>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Job CRUD Demo Modal */}
-      <Modal
-        visible={showJobDemo}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowJobDemo(false)}
-      >
-        <JobCRUDDemo />
-        <TouchableOpacity 
-          style={[styles.closeCRUDDemoButton, {
-            backgroundColor: getColors(colorScheme).tint
-          }]}
-          onPress={() => setShowJobDemo(false)}
-        >
-          <Text style={styles.closeCRUDDemoButtonText}>Close Demo</Text>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Venue CRUD Demo Modal */}
-      <Modal
-        visible={showVenueDemo}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowVenueDemo(false)}
-      >
-        <VenueCRUDDemo />
-        <TouchableOpacity 
-          style={[styles.closeCRUDDemoButton, {
-            backgroundColor: getColors(colorScheme).tint
-          }]}
-          onPress={() => setShowVenueDemo(false)}
-        >
-          <Text style={styles.closeCRUDDemoButtonText}>Close Demo</Text>
-        </TouchableOpacity>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -831,52 +672,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  // CRUD Demo styles
-  crudDemoSection: {
-    margin: 16,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  crudDemoTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  crudDemoDescription: {
-    fontSize: 14,
-    opacity: 0.7,
-    marginBottom: 16,
-    lineHeight: 20,
-  },
-  crudDemoButtons: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  crudDemoButton: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  crudDemoButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  closeCRUDDemoButton: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  closeCRUDDemoButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

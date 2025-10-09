@@ -20,7 +20,6 @@ import {
 } from 'react-native';
 
 // Import existing components
-import { ProfileCRUDDemo } from '@/components/ProfileCRUDDemo';
 import { AchievementsEditor } from '@/components/ui/AchievementsEditor';
 import { AwardsEditor } from '@/components/ui/AwardsEditor';
 import { ExperienceEditor } from '@/components/ui/ExperienceEditor';
@@ -50,7 +49,6 @@ export default function ProfileScreen() {
   const [userPages, setUserPages] = useState<UserPage[]>([]);
   const [isEditingPage, setIsEditingPage] = useState(false);
   const [editingPageData, setEditingPageData] = useState<any>(null);
-  const [showCRUDDemo, setShowCRUDDemo] = useState(false);
   const [showProfileForm, setShowProfileForm] = useState(false);
   const colorScheme = useColorScheme();
   const { width } = Dimensions.get('window');
@@ -2407,31 +2405,6 @@ export default function ProfileScreen() {
       >
         {renderProfileContent()}
         
-        {/* CRUD Demo Section */}
-        <View style={[styles.crudDemoSection, {
-          backgroundColor: getColors(colorScheme).card,
-          borderColor: getColors(colorScheme).border
-        }]}>
-          <Text style={[styles.crudDemoTitle, {
-            color: getColors(colorScheme).text
-          }]}>
-            Profile CRUD Operations
-          </Text>
-          <Text style={[styles.crudDemoDescription, {
-            color: getColors(colorScheme).text
-          }]}>
-            Test Create, Read, Update, Delete operations for user profiles
-          </Text>
-          <TouchableOpacity 
-            style={[styles.crudDemoButton, {
-              backgroundColor: getColors(colorScheme).tint
-            }]}
-            onPress={() => setShowCRUDDemo(true)}
-          >
-            <Text style={styles.crudDemoButtonText}>Open CRUD Demo</Text>
-          </TouchableOpacity>
-          
-        </View>
         
       </ScrollView>
       
@@ -2472,23 +2445,6 @@ export default function ProfileScreen() {
         onSelectType={handlePageTypeSelect}
       />
       
-      {/* CRUD Demo Modal */}
-      <Modal
-        visible={showCRUDDemo}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowCRUDDemo(false)}
-      >
-        <ProfileCRUDDemo />
-        <TouchableOpacity 
-          style={[styles.closeCRUDDemoButton, {
-            backgroundColor: getColors(colorScheme).tint
-          }]}
-          onPress={() => setShowCRUDDemo(false)}
-        >
-          <Text style={styles.closeCRUDDemoButtonText}>Close Demo</Text>
-        </TouchableOpacity>
-      </Modal>
       
     </SafeAreaView>
   );
@@ -3175,48 +3131,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.05)',
   },
   
-  // CRUD Demo styles
-  crudDemoSection: {
-    margin: 16,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  crudDemoTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  crudDemoDescription: {
-    fontSize: 14,
-    opacity: 0.7,
-    marginBottom: 16,
-    lineHeight: 20,
-  },
-  crudDemoButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  crudDemoButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  closeCRUDDemoButton: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  closeCRUDDemoButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
   dropdownArrow: {
     fontSize: 12,
     marginLeft: 8,
