@@ -10,36 +10,64 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const colorScheme = useColorScheme();
   
-  // Use real authentication
+  // Use Firebase authentication
   const { login, loading, error } = useAuth();
 
   const handleLogin = async () => {
     console.log('🔑 Login form submitted');
     
-    // Validation
+    // Enhanced validation
     if (!email || !password) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
     
-    if (!email.includes('@')) {
+    if (!email.includes('@') || !email.includes('.')) {
       Alert.alert('Error', 'Please enter a valid email address');
       return;
     }
 
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters long');
+      return;
+    }
+
     try {
-      console.log('🔑 Attempting login with backend...');
-      const result = await login(email, password);
+      console.log('🔥 Attempting Firebase login...');
+      const result = await login(email.trim().toLowerCase(), password);
       
       if (result.success) {
-        console.log('✅ Login successful, navigating to home...');
+        console.log('✅ Firebase login successful, navigating to home...');
+        Alert.alert('Success', 'Welcome back to TheLineCricket!');
         router.replace('/home');
       } else {
         Alert.alert('Login Failed', 'Invalid credentials. Please try again.');
       }
     } catch (error) {
-      console.error('❌ Login error:', error);
-      Alert.alert('Login Failed', error.message || 'An error occurred during login. Please try again.');
+      console.error('❌ Firebase login error:', error);
+      
+      // Show specific error messages
+      let errorMessage = 'An error occurred during login. Please try again.';
+      
+      if (error.message.includes('user-not-found')) {
+        errorMessage = 'No account found with this email address. Please check your email or create a new account.';
+      } else if (error.message.includes('wrong-password')) {
+        errorMessage = 'Incorrect password. Please try again.';
+      } else if (error.message.includes('invalid-email')) {
+        errorMessage = 'Please enter a valid email address.';
+      } else if (error.message.includes('user-disabled')) {
+        errorMessage = 'This account has been disabled. Please contact support.';
+      } else if (error.message.includes('too-many-requests')) {
+        errorMessage = 'Too many failed attempts. Please try again later.';
+      } else if (error.message.includes('network')) {
+        errorMessage = 'Network error. Please check your internet connection and try again.';
+      } else if (error.message.includes('No internet connection')) {
+        errorMessage = 'No internet connection. Please check your network settings and try again.';
+      } else {
+        errorMessage = error.message || errorMessage;
+      }
+      
+      Alert.alert('Login Failed', errorMessage);
     }
   };
 
@@ -57,7 +85,7 @@ export default function LoginScreen() {
           Welcome Back
         </Text>
         <Text style={[styles.subtitle, { color: getColors(colorScheme).text }]}>
-          Sign in to your account
+          Sign in with Firebase
         </Text>
 
         <View style={styles.inputContainer}>
@@ -121,7 +149,7 @@ export default function LoginScreen() {
             <ActivityIndicator color="white" size="small" />
           ) : (
             <Text style={styles.loginButtonText}>
-              Sign In
+              🔥 Sign In with Firebase
             </Text>
           )}
         </TouchableOpacity>

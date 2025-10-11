@@ -40,12 +40,19 @@ const initialState = {
     total: 0
   },
   
-  // Filters
+  // Filters - matches database posts table columns
   filters: {
-    post_type: null,
-    visibility: null,
+    post_type: null, // VARCHAR(50) CHECK constraint
+    visibility: null, // VARCHAR(20) CHECK constraint
     date_range: null,
-    hashtags: null
+    hashtags: null, // VARCHAR(500)
+    page_id: null, // UUID REFERENCES page_profiles(page_id)
+    community_profile_id: null, // UUID REFERENCES page_profiles(page_id)
+    academy_profile_id: null, // UUID REFERENCES page_profiles(page_id)
+    venue_profile_id: null, // UUID REFERENCES page_profiles(page_id)
+    approval_status: null, // VARCHAR(20) CHECK constraint
+    featured: null, // BOOLEAN
+    priority: null // INTEGER
   },
   
   // Last updated timestamp

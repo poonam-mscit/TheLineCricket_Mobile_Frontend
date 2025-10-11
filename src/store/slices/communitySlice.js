@@ -37,10 +37,18 @@ const initialState = {
     total: 0
   },
   
-  // Filters
+  // Filters - matches database page_profiles table columns
   filters: {
-    category: null,
-    location: null,
+    page_type: null, // PAGETYPE NOT NULL
+    organization_name: null, // VARCHAR(200) NOT NULL
+    city: null, // VARCHAR(100)
+    state: null, // VARCHAR(100)
+    country: null, // VARCHAR(100)
+    is_public: null, // BOOLEAN
+    is_verified: null, // BOOLEAN
+    is_active: null, // BOOLEAN DEFAULT true
+    allow_messages: null, // BOOLEAN
+    show_contact: null, // BOOLEAN
     member_count: null,
     activity_level: null
   },

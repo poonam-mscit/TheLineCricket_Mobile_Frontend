@@ -10,9 +10,12 @@ class ApiService {
   // Get current user profile
   async getCurrentUser() {
     try {
-      const response = await apiClient.get('/api/users/me');
+      console.log('🌐 API Service: getCurrentUser called');
+      const response = await apiClient.get('/api/users/profile');
+      console.log('✅ API Service: getCurrentUser response:', response.data);
       return response.data;
     } catch (error) {
+      console.error('❌ API Service: getCurrentUser error:', error);
       throw new Error(handleApiError(error));
     }
   }
@@ -27,20 +30,45 @@ class ApiService {
     }
   }
 
-  // Create user profile
+  // Create user profile - matches database users table columns
   async createUserProfile(profileData) {
     try {
-      const response = await apiClient.post('/api/users', profileData);
+      // Ensure required fields are present (from database schema)
+      const userData = {
+        email: profileData.email, // NOT NULL
+        username: profileData.username, // NOT NULL
+        auth_provider: profileData.auth_provider || 'firebase', // NOT NULL
+        firebase_uid: profileData.firebase_uid,
+        firebase_email: profileData.firebase_email,
+        cognito_user_id: profileData.cognito_user_id,
+        is_verified: profileData.is_verified || false,
+        is_active: profileData.is_active !== undefined ? profileData.is_active : true
+      };
+      
+      const response = await apiClient.post('/api/users', userData);
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
     }
   }
 
-  // Update user profile
+  // Update user profile - matches database users table columns
   async updateUserProfile(profileData) {
     try {
-      const response = await apiClient.put('/api/users/profile', profileData);
+      // Only allow updating specific fields from users table
+      const allowedFields = [
+        'email', 'username', 'firebase_uid', 'firebase_email', 
+        'cognito_user_id', 'is_verified', 'is_active', 'auth_provider'
+      ];
+      
+      const updateData = {};
+      allowedFields.forEach(field => {
+        if (profileData[field] !== undefined) {
+          updateData[field] = profileData[field];
+        }
+      });
+      
+      const response = await apiClient.put('/api/users/profile', updateData);
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -81,10 +109,63 @@ class ApiService {
     }
   }
 
-  // Create match
+  // Create match - matches database matches table columns
   async createMatch(matchData) {
     try {
-      const response = await apiClient.post('/api/matches', matchData);
+      // Ensure required fields are present (from database schema)
+      const matchPayload = {
+        creator_id: matchData.creator_id, // UUID NOT NULL REFERENCES users(id)
+        match_name: matchData.match_name, // VARCHAR(200) NOT NULL
+        match_type: matchData.match_type, // MATCHTYPE NOT NULL
+        match_format: matchData.match_format, // MATCHFORMAT NOT NULL
+        location: matchData.location, // VARCHAR(200) NOT NULL
+        match_date: matchData.match_date, // DATE NOT NULL
+        match_time: matchData.match_time, // TIME NOT NULL
+        players_needed: matchData.players_needed, // INTEGER NOT NULL
+        
+        // Optional match details
+        description: matchData.description,
+        venue: matchData.venue,
+        entry_fee: matchData.entry_fee,
+        is_public: matchData.is_public !== undefined ? matchData.is_public : true,
+        status: matchData.status || 'Upcoming',
+        match_summary: matchData.match_summary,
+        stream_url: matchData.stream_url,
+        skill_level: matchData.skill_level,
+        minimum_age: matchData.minimum_age,
+        maximum_age: matchData.maximum_age,
+        equipment_provided: matchData.equipment_provided,
+        price_money_amount: matchData.price_money_amount,
+        rules: matchData.rules,
+        
+        // Weather conditions
+        weather: matchData.weather || 'unknown',
+        temperature: matchData.temperature,
+        wind_speed: matchData.wind_speed,
+        humidity: matchData.humidity,
+        
+        // Duration tracking
+        estimated_duration: matchData.estimated_duration,
+        actual_duration: matchData.actual_duration,
+        start_time_actual: matchData.start_time_actual,
+        end_time_actual: matchData.end_time_actual,
+        
+        // Match results
+        winner_team: matchData.winner_team,
+        man_of_the_match: matchData.man_of_the_match,
+        best_bowler: matchData.best_bowler,
+        best_batsman: matchData.best_batsman,
+        
+        // Media content
+        photos: matchData.photos || [],
+        videos: matchData.videos || [],
+        highlights: matchData.highlights || [],
+        
+        // Status
+        is_active: matchData.is_active !== undefined ? matchData.is_active : true
+      };
+      
+      const response = await apiClient.post('/api/matches', matchPayload);
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -387,10 +468,57 @@ class ApiService {
     }
   }
 
-  // Create post
+  // Create post - matches database posts table columns
   async createPost(postData) {
     try {
-      const response = await apiClient.post('/api/posts', postData);
+      // Ensure required fields are present (from database schema)
+      const postPayload = {
+        user_id: postData.user_id, // UUID NOT NULL REFERENCES users(id)
+        content: postData.content, // TEXT NOT NULL
+        post_type: postData.post_type || 'general', // VARCHAR(50) NOT NULL
+        schedule_time: postData.schedule_time || new Date().toISOString(), // TIMESTAMP NOT NULL
+        
+        // Optional content fields
+        image_url: postData.image_url,
+        video_url: postData.video_url,
+        location: postData.location,
+        
+        // Post settings
+        visibility: postData.visibility || 'public',
+        is_pinned: postData.is_pinned || false,
+        is_approved: postData.is_approved !== undefined ? postData.is_approved : true,
+        approval_status: postData.approval_status || 'approved',
+        
+        // Social features
+        hashtags: postData.hashtags,
+        mentions: postData.mentions,
+        
+        // Page associations
+        page_id: postData.page_id,
+        community_profile_id: postData.community_profile_id,
+        academy_profile_id: postData.academy_profile_id,
+        venue_profile_id: postData.venue_profile_id,
+        
+        // Post metadata
+        title: postData.title,
+        post_category: postData.post_category,
+        tags: postData.tags,
+        featured: postData.featured || false,
+        priority: postData.priority || 0,
+        
+        // Event fields
+        event_date: postData.event_date,
+        event_time: postData.event_time,
+        event_location: postData.event_location,
+        max_participants: postData.max_participants,
+        registration_fee: postData.registration_fee,
+        registration_deadline: postData.registration_deadline,
+        
+        // Status
+        is_active: postData.is_active !== undefined ? postData.is_active : true
+      };
+      
+      const response = await apiClient.post('/api/posts', postPayload);
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -463,7 +591,7 @@ class ApiService {
       const formData = new FormData();
       formData.append('photo', imageData);
       
-      const response = await apiClient.post('/users/profile/photo', formData, {
+      const response = await apiClient.post('/api/users/profile/photo', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -481,7 +609,7 @@ class ApiService {
   // Get feed posts
   async getFeedPosts(page = 1, perPage = 20) {
     try {
-      const response = await apiClient.get('/feed', {
+      const response = await apiClient.get('/api/feed', {
         params: { page, per_page: perPage }
       });
       return response.data;
@@ -493,7 +621,7 @@ class ApiService {
   // Create post
   async createPost(postData) {
     try {
-      const response = await apiClient.post('/posts', postData);
+      const response = await apiClient.post('/api/posts', postData);
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -539,7 +667,7 @@ class ApiService {
   // Get matches
   async getMatches(filters = {}) {
     try {
-      const response = await apiClient.get('/matches', { params: filters });
+      const response = await apiClient.get('/api/matches', { params: filters });
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -549,7 +677,7 @@ class ApiService {
   // Create match
   async createMatch(matchData) {
     try {
-      const response = await apiClient.post('/matches', matchData);
+      const response = await apiClient.post('/api/matches', matchData);
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -579,7 +707,7 @@ class ApiService {
   // Get live matches
   async getLiveMatches() {
     try {
-      const response = await apiClient.get('/matches/live');
+      const response = await apiClient.get('/api/matches/live');
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -593,7 +721,7 @@ class ApiService {
   // Get conversations
   async getConversations() {
     try {
-      const response = await apiClient.get('/messaging/conversations');
+      const response = await apiClient.get('/api/messaging/conversations');
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -628,7 +756,7 @@ class ApiService {
   // Create direct conversation
   async createDirectConversation(userId) {
     try {
-      const response = await apiClient.post('/messaging/conversations', { user_id: userId });
+      const response = await apiClient.post('/api/messaging/conversations', { user_id: userId });
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -642,7 +770,7 @@ class ApiService {
   // Get notifications
   async getNotifications(page = 1, perPage = 20) {
     try {
-      const response = await apiClient.get('/notifications', {
+      const response = await apiClient.get('/api/notifications', {
         params: { page, per_page: perPage }
       });
       return response.data;
@@ -664,7 +792,7 @@ class ApiService {
   // Mark all notifications as read
   async markAllNotificationsRead() {
     try {
-      const response = await apiClient.post('/notifications/read-all');
+      const response = await apiClient.post('/api/notifications/read-all');
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -674,7 +802,7 @@ class ApiService {
   // Get unread count
   async getUnreadCount() {
     try {
-      const response = await apiClient.get('/notifications/unread-count');
+      const response = await apiClient.get('/api/notifications/unread-count');
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -688,7 +816,7 @@ class ApiService {
   // Global search
   async globalSearch(query, filters = {}) {
     try {
-      const response = await apiClient.get('/search/global', {
+      const response = await apiClient.get('/api/search/global', {
         params: { q: query, ...filters }
       });
       return response.data;
@@ -700,7 +828,7 @@ class ApiService {
   // Search users
   async searchUsers(query, page = 1, perPage = 20) {
     try {
-      const response = await apiClient.get('/search/users', {
+      const response = await apiClient.get('/api/search/users', {
         params: { q: query, page, per_page: perPage }
       });
       return response.data;
@@ -712,7 +840,7 @@ class ApiService {
   // Search matches
   async searchMatches(query, filters = {}) {
     try {
-      const response = await apiClient.get('/search/matches', {
+      const response = await apiClient.get('/api/search/matches', {
         params: { q: query, ...filters }
       });
       return response.data;
@@ -728,7 +856,7 @@ class ApiService {
   // Follow user
   async followUser(userId) {
     try {
-      const response = await apiClient.post('/follow', { user_id: userId });
+      const response = await apiClient.post('/api/follow', { user_id: userId });
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -738,7 +866,7 @@ class ApiService {
   // Unfollow user
   async unfollowUser(userId) {
     try {
-      const response = await apiClient.post('/unfollow', { user_id: userId });
+      const response = await apiClient.post('/api/unfollow', { user_id: userId });
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -776,7 +904,7 @@ class ApiService {
   // Global search
   async globalSearch(query, filters = {}) {
     try {
-      const response = await apiClient.get('/search/global', {
+      const response = await apiClient.get('/api/search/global', {
         params: { query, ...filters }
       });
       return response.data;
@@ -788,7 +916,7 @@ class ApiService {
   // Get search suggestions
   async getSearchSuggestions(query) {
     try {
-      const response = await apiClient.get('/search/suggestions', {
+      const response = await apiClient.get('/api/search/suggestions', {
         params: { query }
       });
       return response.data;
@@ -800,7 +928,7 @@ class ApiService {
   // Get trending searches
   async getTrendingSearches() {
     try {
-      const response = await apiClient.get('/search/trending');
+      const response = await apiClient.get('/api/search/trending');
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -858,7 +986,7 @@ class ApiService {
   // Block user
   async blockUser(userId) {
     try {
-      const response = await apiClient.post('/block', { user_id: userId });
+      const response = await apiClient.post('/api/block', { user_id: userId });
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -868,7 +996,7 @@ class ApiService {
   // Unblock user
   async unblockUser(userId) {
     try {
-      const response = await apiClient.post('/unblock', { user_id: userId });
+      const response = await apiClient.post('/api/unblock', { user_id: userId });
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -878,7 +1006,7 @@ class ApiService {
   // Create connection
   async createConnection(userId) {
     try {
-      const response = await apiClient.post('/connection', { user_id: userId });
+      const response = await apiClient.post('/api/connection', { user_id: userId });
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -892,7 +1020,7 @@ class ApiService {
   // Get admin dashboard data
   async getAdminDashboard() {
     try {
-      const response = await apiClient.get('/admin/dashboard');
+      const response = await apiClient.get('/api/admin/dashboard');
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -902,7 +1030,7 @@ class ApiService {
   // Get admin users
   async getAdminUsers(page = 1, perPage = 20) {
     try {
-      const response = await apiClient.get('/admin/users', {
+      const response = await apiClient.get('/api/admin/users', {
         params: { page, per_page: perPage }
       });
       return response.data;
@@ -914,7 +1042,7 @@ class ApiService {
   // Get admin posts
   async getAdminPosts(page = 1, perPage = 20) {
     try {
-      const response = await apiClient.get('/admin/posts', {
+      const response = await apiClient.get('/api/admin/posts', {
         params: { page, per_page: perPage }
       });
       return response.data;
@@ -926,7 +1054,7 @@ class ApiService {
   // Get admin matches
   async getAdminMatches(page = 1, perPage = 20) {
     try {
-      const response = await apiClient.get('/admin/matches', {
+      const response = await apiClient.get('/api/admin/matches', {
         params: { page, per_page: perPage }
       });
       return response.data;
@@ -942,7 +1070,7 @@ class ApiService {
   // Health check
   async healthCheck() {
     try {
-      const response = await apiClient.get('/health');
+      const response = await apiClient.get('/api/health');
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));

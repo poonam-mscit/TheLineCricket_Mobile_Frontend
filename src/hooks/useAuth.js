@@ -1,6 +1,5 @@
 // Custom hook for authentication
 import { useCallback, useEffect, useState } from 'react';
-import { apiService } from '../services/apiService';
 import { authService } from '../services/authService';
 
 export const useAuth = () => {
@@ -8,6 +7,7 @@ export const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [authMethod, setAuthMethod] = useState('firebase');
 
   // Initialize auth state
   useEffect(() => {
@@ -16,24 +16,23 @@ export const useAuth = () => {
         setLoading(true);
         setError(null);
 
+        // Initialize auth service
+        await authService.initializeAuth();
+
         // Check if user is already authenticated
         if (authService.isUserAuthenticated()) {
           const currentUser = authService.getCurrentUser();
           setUser(currentUser);
           setIsAuthenticated(true);
-
-          // Get user profile from backend
-          try {
-            const userProfile = await apiService.getCurrentUser();
-            setUser(userProfile.user);
-          } catch (profileError) {
-            console.warn('Failed to get user profile:', profileError);
-            // Keep Firebase user if backend fails
-          }
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        setError(error.message);
+        // Handle network errors specifically
+        if (error.message.includes('network') || error.message.includes('timeout')) {
+          setError('Network error. Please check your internet connection.');
+        } else {
+          setError(error.message);
+        }
       } finally {
         setLoading(false);
       }
@@ -45,23 +44,14 @@ export const useAuth = () => {
     const unsubscribe = authService.addAuthStateListener(async (authState) => {
       setUser(authState.user);
       setIsAuthenticated(authState.isAuthenticated);
+      setAuthMethod(authState.authMethod || 'firebase');
       setLoading(false);
-
-      if (authState.isAuthenticated && authState.user) {
-        // Get user profile from backend
-        try {
-          const userProfile = await apiService.getCurrentUser();
-          setUser(userProfile.user);
-        } catch (profileError) {
-          console.warn('Failed to get user profile:', profileError);
-        }
-      }
     });
 
     return unsubscribe;
   }, []);
 
-  // Login function
+  // Firebase login function
   const login = useCallback(async (email, password) => {
     try {
       setLoading(true);
@@ -70,9 +60,11 @@ export const useAuth = () => {
       const result = await authService.login(email, password);
       setUser(result.user);
       setIsAuthenticated(true);
+      setAuthMethod('firebase');
 
       return result;
     } catch (error) {
+      console.error('Login error:', error);
       setError(error.message);
       throw error;
     } finally {
@@ -80,7 +72,7 @@ export const useAuth = () => {
     }
   }, []);
 
-  // Register function
+  // Firebase register function
   const register = useCallback(async (userData) => {
     try {
       setLoading(true);
@@ -93,6 +85,7 @@ export const useAuth = () => {
       );
       setUser(result.user);
       setIsAuthenticated(true);
+      setAuthMethod('firebase');
 
       return result;
     } catch (error) {
@@ -103,7 +96,7 @@ export const useAuth = () => {
     }
   }, []);
 
-  // Logout function
+  // Firebase logout function
   const logout = useCallback(async () => {
     try {
       setLoading(true);
@@ -112,6 +105,7 @@ export const useAuth = () => {
       await authService.logout();
       setUser(null);
       setIsAuthenticated(false);
+      setAuthMethod('firebase');
 
       return { success: true };
     } catch (error) {
@@ -122,7 +116,7 @@ export const useAuth = () => {
     }
   }, []);
 
-  // Reset password function
+  // Firebase reset password function
   const resetPassword = useCallback(async (email) => {
     try {
       setError(null);
@@ -161,6 +155,7 @@ export const useAuth = () => {
     }
   }, []);
 
+
   // Clear error function
   const clearError = useCallback(() => {
     setError(null);
@@ -172,8 +167,9 @@ export const useAuth = () => {
     isAuthenticated,
     loading,
     error,
+    authMethod,
 
-    // Actions
+    // Firebase Actions
     login,
     register,
     logout,
@@ -184,7 +180,10 @@ export const useAuth = () => {
 
     // Utilities
     isLoggedIn: isAuthenticated && !!user,
-    isGuest: !isAuthenticated || !user
+    isGuest: !isAuthenticated || !user,
+    isFirebaseAuth: authMethod === 'firebase',
+    isBackendAuth: authMethod === 'backend',
+    isHybridAuth: true  // Uses Firebase + Backend
   };
 };
 

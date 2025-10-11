@@ -15,19 +15,29 @@ export default function SignupScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const colorScheme = useColorScheme();
   
-  // Use real authentication
+  // Use Firebase authentication
   const { register, loading, error } = useAuth();
 
   const handleSignup = async () => {
     console.log('📝 Signup form submitted');
     
-    // Validation
+    // Enhanced validation
     if (!fullName || !username || !email || !age || !location || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
     
-    if (!email.includes('@')) {
+    if (fullName.trim().length < 2) {
+      Alert.alert('Error', 'Full name must be at least 2 characters long');
+      return;
+    }
+    
+    if (username.trim().length < 3) {
+      Alert.alert('Error', 'Username must be at least 3 characters long');
+      return;
+    }
+    
+    if (!email.includes('@') || !email.includes('.')) {
       Alert.alert('Error', 'Please enter a valid email address');
       return;
     }
@@ -48,28 +58,52 @@ export default function SignupScreen() {
       return;
     }
 
+    if (location.trim().length < 2) {
+      Alert.alert('Error', 'Please enter a valid location');
+      return;
+    }
+
     try {
-      console.log('📝 Attempting signup with backend...');
+      console.log('🔥 Attempting Firebase signup...');
       const userData = {
-        fullName,
-        username,
-        email,
+        fullName: fullName.trim(),
+        username: username.trim(),
+        email: email.trim().toLowerCase(),
         age: ageNum,
-        location,
+        location: location.trim(),
         password
       };
       
       const result = await register(userData);
       
       if (result.success) {
-        console.log('✅ Signup successful, navigating to home...');
+        console.log('✅ Firebase signup successful, navigating to home...');
+        Alert.alert('Success', 'Account created successfully! Welcome to TheLineCricket!');
         router.replace('/home');
       } else {
         Alert.alert('Signup Failed', 'Account creation failed. Please try again.');
       }
     } catch (error) {
-      console.error('❌ Signup error:', error);
-      Alert.alert('Signup Failed', error.message || 'An error occurred during signup. Please try again.');
+      console.error('❌ Firebase signup error:', error);
+      
+      // Show specific error messages
+      let errorMessage = 'An error occurred during signup. Please try again.';
+      
+      if (error.message.includes('email-already-in-use')) {
+        errorMessage = 'An account with this email already exists. Please use a different email or try logging in.';
+      } else if (error.message.includes('weak-password')) {
+        errorMessage = 'Password is too weak. Please choose a stronger password.';
+      } else if (error.message.includes('invalid-email')) {
+        errorMessage = 'Please enter a valid email address.';
+      } else if (error.message.includes('network')) {
+        errorMessage = 'Network error. Please check your internet connection and try again.';
+      } else if (error.message.includes('No internet connection')) {
+        errorMessage = 'No internet connection. Please check your network settings and try again.';
+      } else {
+        errorMessage = error.message || errorMessage;
+      }
+      
+      Alert.alert('Signup Failed', errorMessage);
     }
   };
 
@@ -88,7 +122,7 @@ export default function SignupScreen() {
             Create Account
           </Text>
           <Text style={[styles.subtitle, { color: getColors(colorScheme).text }]}>
-            Join us today
+            Join us with Firebase
           </Text>
 
           <View style={styles.inputContainer}>
@@ -222,6 +256,14 @@ export default function SignupScreen() {
             />
           </View>
 
+          {error && (
+            <View style={styles.errorContainer}>
+              <Text style={[styles.errorText, { color: '#ff4444' }]}>
+                {error}
+              </Text>
+            </View>
+          )}
+
           <TouchableOpacity 
             style={[
               styles.signupButton, 
@@ -237,7 +279,7 @@ export default function SignupScreen() {
               <ActivityIndicator color="white" size="small" />
             ) : (
               <Text style={styles.signupButtonText}>
-                Create Account
+                🔥 Create Account with Firebase
               </Text>
             )}
           </TouchableOpacity>
@@ -328,5 +370,18 @@ const styles = StyleSheet.create({
   loginLink: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  errorContainer: {
+    marginBottom: 15,
+    padding: 12,
+    backgroundColor: '#ffebee',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ffcdd2',
+  },
+  errorText: {
+    fontSize: 14,
+    textAlign: 'center',
+    fontWeight: '500',
   },
 });

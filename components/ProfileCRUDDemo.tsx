@@ -305,7 +305,7 @@ export function ProfileCRUDDemo() {
           <Text style={[styles.infoText, {
             color: getColors(colorScheme).text
           }]}>
-            Server URL: http://43.205.177.37:5000
+            Server URL: http://localhost:5000
           </Text>
           <Text style={[styles.infoText, {
             color: getColors(colorScheme).text

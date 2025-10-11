@@ -28,6 +28,7 @@ import { PageTypeSelector } from '@/components/ui/PageTypeSelector';
 import { SkillsEditor } from '@/components/ui/SkillsEditor';
 
 // Import hooks
+import { useAuth } from '@/src/hooks/useAuth';
 import { useProfile } from '@/src/hooks/useProfile';
 
 // Import page management utilities
@@ -53,6 +54,9 @@ export default function ProfileScreen() {
   const colorScheme = useColorScheme();
   const { width } = Dimensions.get('window');
   
+  // Authentication state
+  const { user: authUser, isAuthenticated } = useAuth();
+  
   // Profile CRUD functionality
   const {
     currentUser,
@@ -69,69 +73,149 @@ export default function ProfileScreen() {
     clearProfileError
   } = useProfile();
   
-  // Use real data from database instead of hardcoded data
+  // Use real data from database - matches users table structure
   const [user, setUser] = useState({
+    // Database users table columns
     id: currentUser?.id || '',
-    fullName: currentUser?.fullName || profile?.fullName || '',
-    username: currentUser?.username || profile?.username || '',
-    email: currentUser?.email || profile?.email || '',
-    avatar: currentUser?.avatar || profile?.avatar || '',
-    bio: currentUser?.bio || profile?.bio || '',
-    location: currentUser?.location || profile?.location || '',
-    organization: currentUser?.organization || profile?.organization || '',
-    verified: currentUser?.verified || profile?.verified || false,
-    joinedDate: currentUser?.joinedDate || profile?.joinedDate || new Date()
+    firebase_uid: currentUser?.firebase_uid || '',
+    firebase_email: currentUser?.firebase_email || '',
+    cognito_user_id: currentUser?.cognito_user_id || '',
+    email: currentUser?.email || '',
+    username: currentUser?.username || '',
+    is_verified: Boolean(currentUser?.is_verified),
+    is_active: currentUser?.is_active !== undefined ? Boolean(currentUser.is_active) : true,
+    auth_provider: currentUser?.auth_provider || '',
+    created_at: currentUser?.created_at || '',
+    updated_at: currentUser?.updated_at || '',
+    
+    // Profile data (from user_profiles table)
+    fullName: profile?.fullName || '',
+    avatar: profile?.avatar || '',
+    bio: profile?.bio || '',
+    location: profile?.location || '',
+    organization: profile?.organization || '',
+    age: profile?.age || null,
+    gender: profile?.gender || '',
+    contact_number: profile?.contact_number || '',
+    batting_skill: Number(profile?.batting_skill) || 0,
+    bowling_skill: Number(profile?.bowling_skill) || 0,
+    fielding_skill: Number(profile?.fielding_skill) || 0,
+    
+    // Computed fields for display
+    verified: Boolean(currentUser?.is_verified),
+    joinedDate: (currentUser?.created_at && currentUser.created_at !== '') ? new Date(currentUser.created_at) : new Date()
   });
 
-  // Enhanced user stats from database
+  // Enhanced user stats from database - matches user_stats table
   const [userStats, setUserStats] = useState({
+    // Basic statistics from user_stats table
+    total_runs: profile?.stats?.total_runs || 0,
+    total_wickets: profile?.stats?.total_wickets || 0,
+    total_matches: profile?.stats?.total_matches || 0,
+    total_awards: profile?.stats?.total_awards || 0,
+    
+    // Batting statistics
+    batting_average: profile?.stats?.batting_average || 0,
+    batting_strike_rate: profile?.stats?.batting_strike_rate || 0,
+    highest_score: profile?.stats?.highest_score || 0,
+    centuries: profile?.stats?.centuries || 0,
+    half_centuries: profile?.stats?.half_centuries || 0,
+    fours: profile?.stats?.fours || 0,
+    sixes: profile?.stats?.sixes || 0,
+    balls_faced: profile?.stats?.balls_faced || 0,
+    
+    // Bowling statistics
+    bowling_average: profile?.stats?.bowling_average || 0,
+    bowling_economy: profile?.stats?.bowling_economy || 0,
+    bowling_strike_rate: profile?.stats?.bowling_strike_rate || 0,
+    best_bowling_figures: profile?.stats?.best_bowling_figures || '0/0',
+    five_wicket_hauls: profile?.stats?.five_wicket_hauls || 0,
+    four_wicket_hauls: profile?.stats?.four_wicket_hauls || 0,
+    maidens: profile?.stats?.maidens || 0,
+    runs_conceded: profile?.stats?.runs_conceded || 0,
+    balls_bowled: profile?.stats?.balls_bowled || 0,
+    
+    // Fielding statistics
+    catches: profile?.stats?.catches || 0,
+    stumpings: profile?.stats?.stumpings || 0,
+    run_outs: profile?.stats?.run_outs || 0,
+    
+    // Format-wise statistics
+    test_matches: profile?.stats?.test_matches || 0,
+    odi_matches: profile?.stats?.odi_matches || 0,
+    t20_matches: profile?.stats?.t20_matches || 0,
+    test_runs: profile?.stats?.test_runs || 0,
+    odi_runs: profile?.stats?.odi_runs || 0,
+    t20_runs: profile?.stats?.t20_runs || 0,
+    test_wickets: profile?.stats?.test_wickets || 0,
+    odi_wickets: profile?.stats?.odi_wickets || 0,
+    t20_wickets: profile?.stats?.t20_wickets || 0,
+    
+    // Computed fields for display
     posts: profile?.stats?.posts || 0,
-    matches: profile?.stats?.matches || 0,
     followers: profile?.stats?.followers || 0,
     following: profile?.stats?.following || 0,
-    wins: profile?.stats?.wins || 0,
-    losses: profile?.stats?.losses || 0,
-    winRate: profile?.stats?.winRate || 0,
-    totalRuns: profile?.stats?.totalRuns || 0,
-    totalWickets: profile?.stats?.totalWickets || 0,
-    bestScore: profile?.stats?.bestScore || 0,
-    bestBowling: profile?.stats?.bestBowling || '0/0',
     achievements: profile?.achievements?.length || 0
   });
 
-  // Cricket statistics from database
+  // Cricket statistics from database - matches user_stats table
   const [cricketStats, setCricketStats] = useState({
     batting: {
-      totalRuns: profile?.stats?.totalRuns || 0,
-      matches: profile?.stats?.matches || 0,
+      total_runs: profile?.stats?.total_runs || 0,
+      total_matches: profile?.stats?.total_matches || 0,
       centuries: profile?.stats?.centuries || 0,
-      halfCenturies: profile?.stats?.halfCenturies || 0,
-      average: profile?.stats?.battingAverage || 0,
-      highestScore: profile?.stats?.highestScore || 0,
-      strikeRate: profile?.stats?.strikeRate || 0
+      half_centuries: profile?.stats?.half_centuries || 0,
+      batting_average: profile?.stats?.batting_average || 0,
+      highest_score: profile?.stats?.highest_score || 0,
+      batting_strike_rate: profile?.stats?.batting_strike_rate || 0,
+      fours: profile?.stats?.fours || 0,
+      sixes: profile?.stats?.sixes || 0,
+      balls_faced: profile?.stats?.balls_faced || 0
     },
     bowling: {
-      matches: profile?.stats?.matches || 0,
-      overs: profile?.stats?.overs || 0,
-      wickets: profile?.stats?.wickets || 0,
-      hatTricks: profile?.stats?.hatTricks || 0,
-      bestFigures: profile?.stats?.bestBowling || '0/0',
-      average: profile?.stats?.bowlingAverage || 0,
-      economy: profile?.stats?.economy || 0
+      total_matches: profile?.stats?.total_matches || 0,
+      total_wickets: profile?.stats?.total_wickets || 0,
+      bowling_average: profile?.stats?.bowling_average || 0,
+      bowling_economy: profile?.stats?.bowling_economy || 0,
+      bowling_strike_rate: profile?.stats?.bowling_strike_rate || 0,
+      best_bowling_figures: profile?.stats?.best_bowling_figures || '0/0',
+      five_wicket_hauls: profile?.stats?.five_wicket_hauls || 0,
+      four_wicket_hauls: profile?.stats?.four_wicket_hauls || 0,
+      maidens: profile?.stats?.maidens || 0,
+      runs_conceded: profile?.stats?.runs_conceded || 0,
+      balls_bowled: profile?.stats?.balls_bowled || 0
     },
     fielding: {
-      matches: profile?.stats?.matches || 0,
+      total_matches: profile?.stats?.total_matches || 0,
       catches: profile?.stats?.catches || 0,
       stumpings: profile?.stats?.stumpings || 0,
-      runOuts: profile?.stats?.runOuts || 0
+      run_outs: profile?.stats?.run_outs || 0
+    },
+    formats: {
+      test: {
+        matches: profile?.stats?.test_matches || 0,
+        runs: profile?.stats?.test_runs || 0,
+        wickets: profile?.stats?.test_wickets || 0
+      },
+      odi: {
+        matches: profile?.stats?.odi_matches || 0,
+        runs: profile?.stats?.odi_runs || 0,
+        wickets: profile?.stats?.odi_wickets || 0
+      },
+      t20: {
+        matches: profile?.stats?.t20_matches || 0,
+        runs: profile?.stats?.t20_runs || 0,
+        wickets: profile?.stats?.t20_wickets || 0
+      }
     }
   });
 
-  // Skills rating from database
+  // Skills rating from database - matches user_profiles table
   const [skills, setSkills] = useState({
-    batting: profile?.skills?.batting || 0,
-    bowling: profile?.skills?.bowling || 0,
-    fielding: profile?.skills?.fielding || 0
+    batting_skill: profile?.batting_skill || 0,
+    bowling_skill: profile?.bowling_skill || 0,
+    fielding_skill: profile?.fielding_skill || 0,
+    overall: Math.round(((profile?.batting_skill || 0) + (profile?.bowling_skill || 0) + (profile?.fielding_skill || 0)) / 3) || 0
   });
 
   // Experience data from database
@@ -187,68 +271,175 @@ export default function ProfileScreen() {
     loadUserPagesFromStorage();
   }, []);
 
-  // Update local state when profile data changes
+  // Load current user data from backend API when authenticated
   useEffect(() => {
-    if (currentUser || profile) {
-      setUser({
-        id: currentUser?.id || profile?.id || '',
-        fullName: currentUser?.fullName || profile?.fullName || '',
-        username: currentUser?.username || profile?.username || '',
-        email: currentUser?.email || profile?.email || '',
-        avatar: currentUser?.avatar || profile?.avatar || '',
-        bio: currentUser?.bio || profile?.bio || '',
-        location: currentUser?.location || profile?.location || '',
-        organization: currentUser?.organization || profile?.organization || '',
-        verified: currentUser?.verified || profile?.verified || false,
-        joinedDate: currentUser?.joinedDate || profile?.joinedDate || new Date()
-      });
+    console.log('🔍 Profile useEffect - isAuthenticated:', isAuthenticated, 'authUser:', authUser);
+    if (isAuthenticated && authUser) {
+      console.log('🚀 Calling loadCurrentUser()...');
+      loadCurrentUser();
+    }
+  }, [isAuthenticated, authUser, loadCurrentUser]);
 
-      setUserStats({
+  // Handle profile loading errors
+  useEffect(() => {
+    if (hasProfileError) {
+      console.error('Profile loading error:', profileErrors);
+      // Clear errors after a delay to allow retry
+      const timer = setTimeout(() => {
+        clearProfileError();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [hasProfileError, profileErrors, clearProfileError]);
+
+  // Update local state when profile data changes - matches database structure
+  useEffect(() => {
+    console.log('📊 Profile data changed - currentUser:', currentUser, 'profile:', profile);
+    if (currentUser || profile) {
+      console.log('🔄 Updating local user state with database-aligned data...');
+      const newUserData = {
+        // Database users table columns
+        id: currentUser?.id || '',
+        firebase_uid: currentUser?.firebase_uid || '',
+        firebase_email: currentUser?.firebase_email || '',
+        cognito_user_id: currentUser?.cognito_user_id || '',
+        email: currentUser?.email || '',
+        username: currentUser?.username || '',
+        is_verified: Boolean(currentUser?.is_verified),
+        is_active: currentUser?.is_active !== undefined ? Boolean(currentUser.is_active) : true,
+        auth_provider: currentUser?.auth_provider || '',
+        created_at: currentUser?.created_at || '',
+        updated_at: currentUser?.updated_at || '',
+        
+        // Profile data (from user_profiles table)
+        fullName: profile?.fullName || '',
+        avatar: profile?.avatar || '',
+        bio: profile?.bio || '',
+        location: profile?.location || '',
+        organization: profile?.organization || '',
+        age: profile?.age || null,
+        gender: profile?.gender || '',
+        contact_number: profile?.contact_number || '',
+        batting_skill: Number(profile?.batting_skill) || 0,
+        bowling_skill: Number(profile?.bowling_skill) || 0,
+        fielding_skill: Number(profile?.fielding_skill) || 0,
+        
+        // Computed fields for display
+        verified: Boolean(currentUser?.is_verified),
+        joinedDate: (currentUser?.created_at && currentUser.created_at !== '') ? new Date(currentUser.created_at) : new Date()
+      };
+      console.log('🔄 New user data to be set:', newUserData);
+      setUser(newUserData);
+
+      const newUserStats = {
+        // Basic statistics from user_stats table
+        total_runs: profile?.stats?.total_runs || 0,
+        total_wickets: profile?.stats?.total_wickets || 0,
+        total_matches: profile?.stats?.total_matches || 0,
+        total_awards: profile?.stats?.total_awards || 0,
+        
+        // Batting statistics
+        batting_average: profile?.stats?.batting_average || 0,
+        batting_strike_rate: profile?.stats?.batting_strike_rate || 0,
+        highest_score: profile?.stats?.highest_score || 0,
+        centuries: profile?.stats?.centuries || 0,
+        half_centuries: profile?.stats?.half_centuries || 0,
+        fours: profile?.stats?.fours || 0,
+        sixes: profile?.stats?.sixes || 0,
+        balls_faced: profile?.stats?.balls_faced || 0,
+        
+        // Bowling statistics
+        bowling_average: profile?.stats?.bowling_average || 0,
+        bowling_economy: profile?.stats?.bowling_economy || 0,
+        bowling_strike_rate: profile?.stats?.bowling_strike_rate || 0,
+        best_bowling_figures: profile?.stats?.best_bowling_figures || '0/0',
+        five_wicket_hauls: profile?.stats?.five_wicket_hauls || 0,
+        four_wicket_hauls: profile?.stats?.four_wicket_hauls || 0,
+        maidens: profile?.stats?.maidens || 0,
+        runs_conceded: profile?.stats?.runs_conceded || 0,
+        balls_bowled: profile?.stats?.balls_bowled || 0,
+        
+        // Fielding statistics
+        catches: profile?.stats?.catches || 0,
+        stumpings: profile?.stats?.stumpings || 0,
+        run_outs: profile?.stats?.run_outs || 0,
+        
+        // Format-wise statistics
+        test_matches: profile?.stats?.test_matches || 0,
+        odi_matches: profile?.stats?.odi_matches || 0,
+        t20_matches: profile?.stats?.t20_matches || 0,
+        test_runs: profile?.stats?.test_runs || 0,
+        odi_runs: profile?.stats?.odi_runs || 0,
+        t20_runs: profile?.stats?.t20_runs || 0,
+        test_wickets: profile?.stats?.test_wickets || 0,
+        odi_wickets: profile?.stats?.odi_wickets || 0,
+        t20_wickets: profile?.stats?.t20_wickets || 0,
+        
+        // Computed fields for display
         posts: profile?.stats?.posts || 0,
-        matches: profile?.stats?.matches || 0,
         followers: profile?.stats?.followers || 0,
         following: profile?.stats?.following || 0,
-        wins: profile?.stats?.wins || 0,
-        losses: profile?.stats?.losses || 0,
-        winRate: profile?.stats?.winRate || 0,
-        totalRuns: profile?.stats?.totalRuns || 0,
-        totalWickets: profile?.stats?.totalWickets || 0,
-        bestScore: profile?.stats?.bestScore || 0,
-        bestBowling: profile?.stats?.bestBowling || '0/0',
         achievements: profile?.achievements?.length || 0
-      });
+      };
+      console.log('🔄 New user stats to be set:', newUserStats);
+      setUserStats(newUserStats);
 
       setCricketStats({
         batting: {
-          totalRuns: profile?.stats?.totalRuns || 0,
-          matches: profile?.stats?.matches || 0,
+          total_runs: profile?.stats?.total_runs || 0,
+          total_matches: profile?.stats?.total_matches || 0,
           centuries: profile?.stats?.centuries || 0,
-          halfCenturies: profile?.stats?.halfCenturies || 0,
-          average: profile?.stats?.battingAverage || 0,
-          highestScore: profile?.stats?.highestScore || 0,
-          strikeRate: profile?.stats?.strikeRate || 0
+          half_centuries: profile?.stats?.half_centuries || 0,
+          batting_average: profile?.stats?.batting_average || 0,
+          highest_score: profile?.stats?.highest_score || 0,
+          batting_strike_rate: profile?.stats?.batting_strike_rate || 0,
+          fours: profile?.stats?.fours || 0,
+          sixes: profile?.stats?.sixes || 0,
+          balls_faced: profile?.stats?.balls_faced || 0
         },
         bowling: {
-          matches: profile?.stats?.matches || 0,
-          overs: profile?.stats?.overs || 0,
-          wickets: profile?.stats?.wickets || 0,
-          hatTricks: profile?.stats?.hatTricks || 0,
-          bestFigures: profile?.stats?.bestBowling || '0/0',
-          average: profile?.stats?.bowlingAverage || 0,
-          economy: profile?.stats?.economy || 0
+          total_matches: profile?.stats?.total_matches || 0,
+          total_wickets: profile?.stats?.total_wickets || 0,
+          bowling_average: profile?.stats?.bowling_average || 0,
+          bowling_economy: profile?.stats?.bowling_economy || 0,
+          bowling_strike_rate: profile?.stats?.bowling_strike_rate || 0,
+          best_bowling_figures: profile?.stats?.best_bowling_figures || '0/0',
+          five_wicket_hauls: profile?.stats?.five_wicket_hauls || 0,
+          four_wicket_hauls: profile?.stats?.four_wicket_hauls || 0,
+          maidens: profile?.stats?.maidens || 0,
+          runs_conceded: profile?.stats?.runs_conceded || 0,
+          balls_bowled: profile?.stats?.balls_bowled || 0
         },
         fielding: {
-          matches: profile?.stats?.matches || 0,
+          total_matches: profile?.stats?.total_matches || 0,
           catches: profile?.stats?.catches || 0,
           stumpings: profile?.stats?.stumpings || 0,
-          runOuts: profile?.stats?.runOuts || 0
+          run_outs: profile?.stats?.run_outs || 0
+        },
+        formats: {
+          test: {
+            matches: profile?.stats?.test_matches || 0,
+            runs: profile?.stats?.test_runs || 0,
+            wickets: profile?.stats?.test_wickets || 0
+          },
+          odi: {
+            matches: profile?.stats?.odi_matches || 0,
+            runs: profile?.stats?.odi_runs || 0,
+            wickets: profile?.stats?.odi_wickets || 0
+          },
+          t20: {
+            matches: profile?.stats?.t20_matches || 0,
+            runs: profile?.stats?.t20_runs || 0,
+            wickets: profile?.stats?.t20_wickets || 0
+          }
         }
       });
 
       setSkills({
-        batting: profile?.skills?.batting || 0,
-        bowling: profile?.skills?.bowling || 0,
-        fielding: profile?.skills?.fielding || 0
+        batting_skill: profile?.batting_skill || 0,
+        bowling_skill: profile?.bowling_skill || 0,
+        fielding_skill: profile?.fielding_skill || 0,
+        overall: Math.round(((profile?.batting_skill || 0) + (profile?.bowling_skill || 0) + (profile?.fielding_skill || 0)) / 3) || 0
       });
 
       setExperience(profile?.experience || []);
@@ -281,12 +472,17 @@ export default function ProfileScreen() {
   // Event handlers
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    // Reload posts and pages from storage
-    await loadUserPostsFromStorage();
-    await loadUserPagesFromStorage();
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsRefreshing(false);
+    try {
+      // Reload posts and pages from storage
+      await loadUserPostsFromStorage();
+      await loadUserPagesFromStorage();
+      // Reload current user data from backend API
+      await loadCurrentUser();
+    } catch (error) {
+      console.error('Error refreshing profile data:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const handlePageTypeSelect = (type: PageType) => {
@@ -443,7 +639,7 @@ export default function ProfileScreen() {
                       color: getColors(colorScheme).text,
                       borderColor: getColors(colorScheme).border
                     }]}
-                    value={academyData.students.toString()}
+                    value={(academyData.students || 0).toString()}
                     onChangeText={(text) => setEditingPageData({...academyData, students: parseInt(text) || 0})}
                     placeholder="Students"
                     keyboardType="numeric"
@@ -453,7 +649,7 @@ export default function ProfileScreen() {
                       color: getColors(colorScheme).text,
                       borderColor: getColors(colorScheme).border
                     }]}
-                    value={academyData.successRate.toString()}
+                    value={(academyData.successRate || 0).toString()}
                     onChangeText={(text) => setEditingPageData({...academyData, successRate: parseInt(text) || 0})}
                     placeholder="Success Rate %"
                     keyboardType="numeric"
@@ -647,7 +843,7 @@ export default function ProfileScreen() {
                       color: getColors(colorScheme).text,
                       borderColor: getColors(colorScheme).border
                     }]}
-                    value={coach.experience.toString()}
+                    value={(coach.experience || 0).toString()}
                     onChangeText={(text) => {
                       const updatedCoaches = [...(academyData.coaches || [])];
                       updatedCoaches[index] = { ...coach, experience: parseInt(text) || 0 };
@@ -757,7 +953,7 @@ export default function ProfileScreen() {
                       color: getColors(colorScheme).text,
                       borderColor: getColors(colorScheme).border
                     }]}
-                    value={program.fee.toString()}
+                    value={(program.fee || 0).toString()}
                     onChangeText={(text) => {
                       const updatedPrograms = [...(academyData.programs || [])];
                       updatedPrograms[index] = { ...program, fee: parseInt(text) || 0 };
@@ -865,7 +1061,7 @@ export default function ProfileScreen() {
                       color: getColors(colorScheme).text,
                       borderColor: getColors(colorScheme).border
                     }]}
-                    value={communityData.membersCount?.toString() || '0'}
+                    value={((communityData.membersCount || 0)).toString()}
                     onChangeText={(text) => setEditingPageData({...communityData, membersCount: parseInt(text) || 0})}
                     placeholder="Members Count"
                     keyboardType="numeric"
@@ -1063,7 +1259,7 @@ export default function ProfileScreen() {
                       color: getColors(colorScheme).text,
                       borderColor: getColors(colorScheme).border
                     }]}
-                    value={venueData.capacity?.toString() || '0'}
+                    value={((venueData.capacity || 0)).toString()}
                     onChangeText={(text) => setEditingPageData({...venueData, capacity: parseInt(text) || 0})}
                     placeholder="Capacity"
                     keyboardType="numeric"
@@ -2384,6 +2580,24 @@ export default function ProfileScreen() {
     </View>
   );
 
+  // Show loading state when profile is being loaded
+  if (isProfileLoading && !currentUser && !profile) {
+    return (
+      <SafeAreaView style={[styles.container, { 
+        backgroundColor: getColors(colorScheme).background,
+        paddingTop: StatusBar.currentHeight || 0
+      }]}>
+        <View style={styles.loadingContainer}>
+          <Text style={[styles.loadingText, { 
+            color: getColors(colorScheme).text 
+          }]}>
+            Loading profile...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={[styles.container, { 
       backgroundColor: getColors(colorScheme).background,
@@ -3443,5 +3657,17 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 12,
     fontWeight: '600',
+  },
+  // Loading state styles
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });

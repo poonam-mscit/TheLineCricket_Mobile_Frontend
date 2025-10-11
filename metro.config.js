@@ -5,6 +5,9 @@ const config = getDefaultConfig(__dirname);
 // Add network security configuration
 config.resolver.platforms = ['ios', 'android', 'native', 'web'];
 
+// Clear cache configuration
+config.resetCache = true;
+
 // Allow HTTP connections for development
 config.server = {
   ...config.server,

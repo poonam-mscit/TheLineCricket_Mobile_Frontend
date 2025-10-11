@@ -22,6 +22,11 @@ class SocketService {
         return;
       }
 
+      // Validate socket URL
+      if (!environment.SOCKET_URL || environment.SOCKET_URL === 'undefined') {
+        throw new Error('Socket URL not configured. Please check environment settings.');
+      }
+
       const token = await tokenService.getAccessToken();
       if (!token) {
         throw new Error('No authentication token available');

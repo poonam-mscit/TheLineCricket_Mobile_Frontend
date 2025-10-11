@@ -2,6 +2,122 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { apiService } from '../../services/apiService';
 
+// Transform backend data to frontend format - matches database users table
+const transformUserData = (rawData) => {
+  console.log('🔄 Transform: Raw data:', rawData);
+  
+  // Extract profile data if it exists (from user_profiles table)
+  const profile = rawData.profile || {};
+  
+  const transformed = {
+    // Database users table columns
+    id: rawData.id || '',
+    firebase_uid: rawData.firebase_uid || '',
+    firebase_email: rawData.firebase_email || '',
+    cognito_user_id: rawData.cognito_user_id || '',
+    email: rawData.email || '',
+    username: rawData.username || '',
+    is_verified: rawData.is_verified || false,
+    is_active: rawData.is_active !== undefined ? rawData.is_active : true,
+    auth_provider: rawData.auth_provider || '',
+    created_at: rawData.created_at || '',
+    updated_at: rawData.updated_at || '',
+    
+    // Profile data (from user_profiles table)
+    fullName: profile.full_name || '',
+    avatar: profile.profile_image_url || '',
+    bio: profile.bio || '',
+    location: profile.location || '',
+    organization: profile.organization || '',
+    age: profile.age || null,
+    gender: profile.gender || '',
+    contact_number: profile.contact_number || '',
+    batting_skill: profile.batting_skill || 0,
+    bowling_skill: profile.bowling_skill || 0,
+    fielding_skill: profile.fielding_skill || 0,
+    
+    // Stats transformation
+    stats: {
+      posts: rawData.posts_count || 0,
+      matches: profile.stats?.total_matches || 0,
+      followers: rawData.followers_count || 0,
+      following: rawData.following_count || 0,
+      wins: rawData.wins_count || 0,
+      losses: rawData.losses_count || 0,
+      winRate: rawData.win_rate || 0,
+      totalRuns: profile.stats?.total_runs || 0,
+      totalWickets: profile.stats?.total_wickets || 0,
+      bestScore: profile.stats?.highest_score || 0,
+      bestBowling: profile.stats?.best_bowling_figures || '0/0',
+      achievements: profile.achievements?.length || 0
+    },
+    
+    // Skills transformation
+    skills: {
+      batting: profile.batting_skill || 0,
+      bowling: profile.bowling_skill || 0,
+      fielding: profile.fielding_skill || 0
+    },
+    
+    // Cricket stats transformation
+    cricketStats: {
+      batting: {
+        totalRuns: profile.stats?.total_runs || 0,
+        matches: profile.stats?.total_matches || 0,
+        centuries: profile.stats?.centuries || 0,
+        halfCenturies: profile.stats?.half_centuries || 0,
+        average: profile.stats?.batting_average || 0,
+        highestScore: profile.stats?.highest_score || 0,
+        strikeRate: profile.stats?.batting_strike_rate || 0
+      },
+      bowling: {
+        matches: profile.stats?.total_matches || 0,
+        overs: profile.stats?.total_overs || 0,
+        wickets: profile.stats?.total_wickets || 0,
+        hatTricks: profile.stats?.hat_tricks || 0,
+        bestFigures: profile.stats?.best_bowling_figures || '0/0',
+        average: profile.stats?.bowling_average || 0,
+        economy: profile.stats?.bowling_economy || 0
+      },
+      fielding: {
+        matches: profile.stats?.total_matches || 0,
+        catches: profile.stats?.catches || 0,
+        stumpings: profile.stats?.stumpings || 0,
+        runOuts: profile.stats?.run_outs || 0
+      }
+    },
+    
+    // Experience transformation
+    experience: profile.experiences?.map(exp => ({
+      id: exp.id,
+      title: exp.title,
+      organization: exp.role,
+      duration: exp.duration,
+      description: exp.description
+    })) || [],
+    
+    // Achievements transformation
+    achievements: profile.achievements?.map(ach => ({
+      id: ach.id,
+      title: ach.title,
+      year: ach.year,
+      description: ach.description
+    })) || [],
+    
+    // Awards transformation (if available)
+    awards: profile.awards?.map(award => ({
+      id: award.id,
+      title: award.title,
+      organization: award.organization,
+      year: award.year,
+      description: award.description
+    })) || []
+  };
+  
+  console.log('🔄 Transform: Transformed data:', transformed);
+  return transformed;
+};
+
 // Initial state
 const initialState = {
   // Current user profile
@@ -28,16 +144,38 @@ const initialState = {
     deleting: null
   },
   
-  // Profile data
+  // Profile data - matches database users table structure
   profile: {
+    // Database users table columns
     id: null,
-    username: '',
-    fullName: '',
+    firebase_uid: '',
+    firebase_email: '',
+    cognito_user_id: '',
     email: '',
+    username: '',
+    is_verified: false,
+    is_active: true,
+    auth_provider: '',
+    created_at: '',
+    updated_at: '',
+    
+    // Profile data (from user_profiles table)
+    fullName: '',
     bio: '',
     location: '',
+    organization: '',
+    age: null,
+    gender: '',
+    contact_number: '',
     avatar: null,
     coverImage: null,
+    
+    // Skills (from user_profiles table)
+    batting_skill: 0,
+    bowling_skill: 0,
+    fielding_skill: 0,
+    
+    // Stats
     stats: {
       posts: 0,
       matches: 0,
@@ -46,12 +184,8 @@ const initialState = {
       wins: 0,
       losses: 0
     },
-    skills: {
-      batting: 0,
-      bowling: 0,
-      fielding: 0,
-      overall: 0
-    },
+    
+    // Additional frontend fields
     achievements: [],
     isFollowing: false,
     isOwnProfile: false,
@@ -72,9 +206,12 @@ export const fetchCurrentUser = createAsyncThunk(
   'profile/fetchCurrentUser',
   async (_, { rejectWithValue }) => {
     try {
+      console.log('🔄 Redux: fetchCurrentUser called');
       const response = await apiService.getCurrentUser();
+      console.log('✅ Redux: fetchCurrentUser response:', response);
       return response;
     } catch (error) {
+      console.error('❌ Redux: fetchCurrentUser error:', error);
       return rejectWithValue(error.message);
     }
   }
@@ -205,9 +342,19 @@ const profileSlice = createSlice({
       })
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
         state.loading.currentUser = false;
-        state.currentUser = action.payload;
-        state.profile = { ...state.profile, ...action.payload };
+        console.log('🔄 Redux: fetchCurrentUser.fulfilled - action.payload:', action.payload);
+        // Extract user data from the wrapped response
+        const rawUserData = action.payload.user || action.payload;
+        console.log('🔄 Redux: Raw userData:', rawUserData);
+        
+        // Transform backend data to frontend format
+        const userData = transformUserData(rawUserData);
+        console.log('🔄 Redux: Transformed userData:', userData);
+        
+        state.currentUser = userData;
+        state.profile = { ...state.profile, ...userData };
         state.lastUpdated = new Date().toISOString();
+        console.log('🔄 Redux: Updated state.currentUser:', state.currentUser);
       })
       .addCase(fetchCurrentUser.rejected, (state, action) => {
         state.loading.currentUser = false;

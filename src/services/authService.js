@@ -1,16 +1,7 @@
 // Authentication service layer
-import {
-    createUserWithEmailAndPassword,
-    onAuthStateChanged,
-    sendPasswordResetEmail,
-    signInWithEmailAndPassword,
-    signOut,
-    updateProfile
-} from 'firebase/auth';
-import environment from '../config/environment';
-import { handleApiError, handleFirebaseError } from '../utils/errorHandler';
+import { handleApiError } from '../utils/errorHandler';
 import apiClient from './apiClient';
-import { auth } from './firebase';
+import firebaseAuthService from './firebaseAuthService';
 import tokenService from './tokenService';
 
 class AuthService {
@@ -18,36 +9,65 @@ class AuthService {
     this.currentUser = null;
     this.isAuthenticated = false;
     this.listeners = [];
-    
-    // Listen to Firebase auth state changes
-    this.setupAuthStateListener();
+    this.authMethod = 'firebase'; // Firebase only
+    this.isInitialized = false;
+    this.initializationPromise = null;
   }
 
   /**
-   * Setup Firebase auth state listener
+   * Initialize authentication state from Firebase
    */
-  setupAuthStateListener() {
-    onAuthStateChanged(auth, async (user) => {
-      this.currentUser = user;
-      this.isAuthenticated = !!user;
+  async initializeAuth() {
+    // Prevent multiple initializations
+    if (this.initializationPromise) {
+      return this.initializationPromise;
+    }
+
+    this.initializationPromise = this._performInitialization();
+    return this.initializationPromise;
+  }
+
+  async _performInitialization() {
+    try {
+      console.log('🔄 Initializing authentication...');
       
-      if (user) {
-        // Get Firebase ID token
-        const idToken = await user.getIdToken();
+      // Check if Firebase user is already authenticated
+      if (firebaseAuthService.isUserAuthenticated()) {
+        this.currentUser = firebaseAuthService.getCurrentUser();
+        this.isAuthenticated = true;
         
-        // Store tokens
-        await tokenService.setTokens(idToken, idToken); // Using same token for both
-        
-        // Sync user with backend
-        await this.syncUserWithBackend(user);
+        // Verify token is still valid
+        try {
+          await this.refreshToken();
+        } catch (error) {
+          console.warn('Token refresh failed, clearing auth state:', error);
+          await this._clearAuthState();
+        }
       } else {
-        // Clear tokens when user signs out
+        // Clear any stale tokens
         await tokenService.clearTokens();
+        this.currentUser = null;
+        this.isAuthenticated = false;
       }
       
-      // Notify listeners
+      this.isInitialized = true;
       this.notifyListeners();
-    });
+      console.log('✅ Authentication initialized');
+    } catch (error) {
+      console.error('❌ Firebase auth initialization error:', error);
+      await this._clearAuthState();
+      this.isInitialized = true;
+      this.notifyListeners();
+    }
+  }
+
+  /**
+   * Clear authentication state
+   */
+  async _clearAuthState() {
+    this.currentUser = null;
+    this.isAuthenticated = false;
+    await tokenService.clearTokens();
   }
 
   /**
@@ -67,248 +87,148 @@ class AuthService {
     this.listeners.forEach(listener => {
       listener({
         user: this.currentUser,
-        isAuthenticated: this.isAuthenticated
+        isAuthenticated: this.isAuthenticated,
+        authMethod: this.authMethod
       });
     });
   }
 
+
   /**
-   * Sync Firebase user with backend
+   * Register new user with Firebase authentication
    */
-  async syncUserWithBackend(firebaseUser) {
+  async register(email, password, userData = {}) {
     try {
-      const userData = {
-        firebase_uid: firebaseUser.uid,
-        firebase_email: firebaseUser.email,
-        email: firebaseUser.email,
-        username: firebaseUser.displayName || firebaseUser.email.split('@')[0],
-        is_verified: firebaseUser.emailVerified,
-        auth_provider: 'firebase'
-      };
-
-      console.log('🔄 Attempting to sync user with backend...');
-      console.log('📍 Backend URL:', environment.API_BASE_URL);
-
-      // Try to get user from backend first
-      try {
-        console.log('🔍 Checking if user exists in backend...');
-        const response = await apiClient.get('/auth/me');
-        console.log('✅ User found in backend:', response.data);
-        return response.data;
-      } catch (error) {
-        console.log('⚠️ User not found in backend, creating new user...');
-        
-        // If user doesn't exist, create them
-        if (error.response?.status === 404) {
-          console.log('📝 Creating new user in backend...');
-          const response = await apiClient.post('/auth/register', userData);
-          console.log('✅ User created successfully:', response.data);
-          return response.data;
-        }
-        
-        // Handle network errors specifically
-        if (error.code === 'NETWORK_ERROR' || error.code === 'ECONNREFUSED' || !error.response) {
-          console.error('🌐 Network Error - Backend server may be unreachable');
-          console.error('🔧 Please check if server is running on:', environment.API_BASE_URL);
-          throw new Error(`Cannot connect to backend server at ${environment.API_BASE_URL}. Please check if the server is running.`);
-        }
-        
-        throw error;
+      console.log('🔄 Starting user registration...');
+      this.authMethod = 'firebase';
+      
+      // Validate input
+      if (!email || !password) {
+        throw new Error('Email and password are required');
       }
+      
+      if (password.length < 6) {
+        throw new Error('Password must be at least 6 characters long');
+      }
+      
+      const result = await firebaseAuthService.register(email, password, userData);
+      
+      // Update current user state
+      this.currentUser = result.user;
+      this.isAuthenticated = true;
+      this.notifyListeners();
+      
+      console.log('✅ User registration successful');
+      return result;
     } catch (error) {
-      console.error('❌ Failed to sync user with backend:', error);
+      console.error('❌ Firebase registration error:', error);
+      
+      // Clear any partial state
+      await this._clearAuthState();
+      
+      // Re-throw with user-friendly message
+      if (error.message.includes('email-already-in-use')) {
+        throw new Error('An account with this email already exists');
+      } else if (error.message.includes('weak-password')) {
+        throw new Error('Password is too weak. Please choose a stronger password');
+      } else if (error.message.includes('invalid-email')) {
+        throw new Error('Please enter a valid email address');
+      } else if (error.message.includes('network')) {
+        throw new Error('Network error. Please check your internet connection');
+      }
+      
       throw error;
     }
   }
 
-  /**
-   * Register new user with email and password (Backend only)
-   */
-  async register(email, password, userData = {}) {
-    try {
-      // Register with backend API
-      const response = await apiClient.post('/auth/register', {
-        email,
-        password,
-        username: userData.username || email.split('@')[0],
-        full_name: userData.fullName,
-        age: userData.age ? parseInt(userData.age) : null,
-        location: userData.location,
-        contact_number: userData.contactNumber,
-        profile_type: userData.profileType || 'player'
-      });
-      
-      const { access_token, refresh_token, user } = response.data;
-      
-      // Store tokens
-      await tokenService.setTokens(access_token, refresh_token);
-      
-      // Update current user state
-      this.currentUser = user;
-      this.isAuthenticated = true;
-      this.notifyListeners();
-      
-      return {
-        success: true,
-        user: user,
-        message: 'Registration successful'
-      };
-    } catch (error) {
-      console.error('Registration error:', error);
-      throw new Error(handleApiError(error));
-    }
-  }
 
   /**
-   * Register with Firebase (legacy method)
-   */
-  async registerWithFirebase(email, password, userData = {}) {
-    try {
-      // Create Firebase user
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Update Firebase profile
-      if (userData.fullName) {
-        await updateProfile(user, {
-          displayName: userData.fullName
-        });
-      }
-
-      // Prepare backend user data
-      const backendUserData = {
-        firebase_uid: user.uid,
-        firebase_email: user.email,
-        email: user.email,
-        username: userData.username || user.email.split('@')[0],
-        full_name: userData.fullName || user.displayName,
-        age: userData.age ? parseInt(userData.age) : null,
-        location: userData.location || null,
-        contact_number: userData.contactNumber || null,
-        profile_type: userData.profileType || 'player',
-        is_verified: user.emailVerified,
-        auth_provider: 'firebase'
-      };
-
-      // Create user in backend
-      const response = await apiClient.post('/auth/register', backendUserData);
-      
-      return {
-        success: true,
-        user: response.data.user,
-        message: 'Registration successful'
-      };
-    } catch (error) {
-      console.error('Registration error:', error);
-      
-      if (error.code && error.code.startsWith('auth/')) {
-        throw new Error(handleFirebaseError(error));
-      } else {
-        throw new Error(handleApiError(error));
-      }
-    }
-  }
-
-  /**
-   * Sign in with email and password (Backend only)
+   * Sign in with Firebase authentication
    */
   async login(email, password) {
     try {
-      // Login with backend API
-      const response = await apiClient.post('/auth/login', {
-        email,
-        password
-      });
+      console.log('🔄 Starting user login...');
+      this.authMethod = 'firebase';
       
-      const { access_token, refresh_token, user } = response.data;
+      // Validate input
+      if (!email || !password) {
+        throw new Error('Email and password are required');
+      }
       
-      // Store tokens
-      await tokenService.setTokens(access_token, refresh_token);
+      const result = await firebaseAuthService.login(email, password);
       
       // Update current user state
-      this.currentUser = user;
+      this.currentUser = result.user;
       this.isAuthenticated = true;
       this.notifyListeners();
       
-      return {
-        success: true,
-        user: user,
-        message: 'Login successful'
-      };
+      console.log('✅ User login successful');
+      return result;
     } catch (error) {
-      console.error('Login error:', error);
-      throw new Error(handleApiError(error));
-    }
-  }
-
-  /**
-   * Sign in with Firebase (legacy method)
-   */
-  async loginWithFirebase(email, password) {
-    try {
-      // Sign in with Firebase
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Get Firebase ID token
-      const idToken = await user.getIdToken();
+      console.error('❌ Firebase login error:', error);
       
-      // Store tokens
-      await tokenService.setTokens(idToken, idToken);
-
-      // Get user data from backend
-      const response = await apiClient.get('/auth/me');
+      // Clear any partial state
+      await this._clearAuthState();
       
-      return {
-        success: true,
-        user: response.data.user,
-        message: 'Login successful'
-      };
-    } catch (error) {
-      console.error('Login error:', error);
-      
-      if (error.code && error.code.startsWith('auth/')) {
-        throw new Error(handleFirebaseError(error));
-      } else {
-        throw new Error(handleApiError(error));
+      // Re-throw with user-friendly message
+      if (error.message.includes('user-not-found')) {
+        throw new Error('No account found with this email address');
+      } else if (error.message.includes('wrong-password')) {
+        throw new Error('Incorrect password');
+      } else if (error.message.includes('user-disabled')) {
+        throw new Error('This account has been disabled');
+      } else if (error.message.includes('too-many-requests')) {
+        throw new Error('Too many failed attempts. Please try again later');
+      } else if (error.message.includes('network')) {
+        throw new Error('Network error. Please check your internet connection');
       }
+      
+      throw error;
     }
   }
 
+
   /**
-   * Sign out user
+   * Sign out user with Firebase
    */
   async logout() {
     try {
-      // Sign out from Firebase
-      await signOut(auth);
+      console.log('🔄 Starting user logout...');
+      this.authMethod = 'firebase';
       
-      // Clear stored tokens
-      await tokenService.clearTokens();
+      const result = await firebaseAuthService.logout();
       
+      // Update state
+      this.currentUser = null;
+      this.isAuthenticated = false;
+      this.notifyListeners();
+      
+      console.log('✅ User logout successful');
+      return result;
+    } catch (error) {
+      console.error('❌ Firebase logout error:', error);
+      
+      // Force clear local state even if Firebase logout fails
+      await this._clearAuthState();
+      this.notifyListeners();
+      
+      // Don't throw error for logout - always succeed locally
       return {
         success: true,
-        message: 'Logout successful'
+        message: 'Logged out successfully'
       };
-    } catch (error) {
-      console.error('Logout error:', error);
-      throw new Error('Failed to logout');
     }
   }
 
   /**
-   * Send password reset email
+   * Send password reset email with Firebase
    */
   async resetPassword(email) {
     try {
-      await sendPasswordResetEmail(auth, email);
-      return {
-        success: true,
-        message: 'Password reset email sent'
-      };
+      return await firebaseAuthService.resetPassword(email);
     } catch (error) {
-      console.error('Password reset error:', error);
-      throw new Error(handleFirebaseError(error));
+      console.error('Firebase password reset error:', error);
+      throw error;
     }
   }
 
@@ -331,10 +251,33 @@ class AuthService {
    */
   async getUserProfile() {
     try {
-      const response = await apiClient.get('/auth/me');
+      console.log('🔄 Fetching user profile...');
+      
+      if (!this.isAuthenticated) {
+        throw new Error('User must be authenticated to fetch profile');
+      }
+      
+      const response = await apiClient.get('/api/users/me');
+      console.log('✅ User profile fetched successfully');
       return response.data.user;
     } catch (error) {
-      console.error('Get user profile error:', error);
+      console.error('❌ Get user profile error:', error);
+      
+      // Handle specific error cases
+      if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+        // Token might be expired, try to refresh
+        try {
+          await this.refreshToken();
+          const response = await apiClient.get('/api/users/me');
+          return response.data.user;
+        } catch (refreshError) {
+          console.error('❌ Token refresh failed:', refreshError);
+          await this._clearAuthState();
+          this.notifyListeners();
+          throw new Error('Session expired. Please login again.');
+        }
+      }
+      
       throw new Error(handleApiError(error));
     }
   }
@@ -344,10 +287,37 @@ class AuthService {
    */
   async updateUserProfile(profileData) {
     try {
-      const response = await apiClient.put('/users/profile', profileData);
+      console.log('🔄 Updating user profile...');
+      
+      if (!this.isAuthenticated) {
+        throw new Error('User must be authenticated to update profile');
+      }
+      
+      if (!profileData || Object.keys(profileData).length === 0) {
+        throw new Error('Profile data is required');
+      }
+      
+      const response = await apiClient.put('/api/users/profile', profileData);
+      console.log('✅ User profile updated successfully');
       return response.data;
     } catch (error) {
-      console.error('Update profile error:', error);
+      console.error('❌ Update profile error:', error);
+      
+      // Handle specific error cases
+      if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+        // Token might be expired, try to refresh
+        try {
+          await this.refreshToken();
+          const response = await apiClient.put('/api/users/profile', profileData);
+          return response.data;
+        } catch (refreshError) {
+          console.error('❌ Token refresh failed:', refreshError);
+          await this._clearAuthState();
+          this.notifyListeners();
+          throw new Error('Session expired. Please login again.');
+        }
+      }
+      
       throw new Error(handleApiError(error));
     }
   }
@@ -357,16 +327,117 @@ class AuthService {
    */
   async refreshToken() {
     try {
-      if (this.currentUser) {
-        const newToken = await this.currentUser.getIdToken(true);
-        await tokenService.setTokens(newToken, newToken);
-        return newToken;
+      console.log('🔄 Refreshing Firebase token...');
+      
+      if (!this.isAuthenticated || !this.currentUser) {
+        throw new Error('No authenticated user to refresh token for');
       }
-      throw new Error('No user logged in');
+      
+      const token = await firebaseAuthService.getFirebaseIdToken();
+      
+      if (!token) {
+        throw new Error('Failed to get Firebase token');
+      }
+      
+      // Sync with backend to get new JWT
+      try {
+        const response = await apiClient.post('/api/firebase/verify-token', {
+          id_token: token,
+          firebase_uid: this.currentUser.uid,
+          email: this.currentUser.email,
+          displayName: this.currentUser.displayName
+        });
+        
+        if (response.data.success) {
+          const { jwt_token } = response.data.data;
+          await tokenService.setTokens(jwt_token, jwt_token);
+          console.log('✅ Token refreshed successfully');
+          return token;
+        } else {
+          throw new Error('Backend token refresh failed');
+        }
+      } catch (backendError) {
+        console.error('❌ Backend token sync failed:', backendError);
+        // Still return the Firebase token even if backend sync fails
+        return token;
+      }
     } catch (error) {
-      console.error('Token refresh error:', error);
+      console.error('❌ Firebase token refresh error:', error);
       throw error;
     }
+  }
+
+  /**
+   * Get current auth method (always Firebase)
+   */
+  getAuthMethod() {
+    return 'firebase';
+  }
+
+  /**
+   * Check if authentication is initialized
+   */
+  isInitialized() {
+    return this.isInitialized;
+  }
+
+  /**
+   * Sync Firebase user with backend
+   */
+  async syncFirebaseUserWithBackend(firebaseUser) {
+    try {
+      console.log('🔄 Syncing Firebase user with backend...');
+      
+      if (!firebaseUser) {
+        throw new Error('Firebase user is required for sync');
+      }
+      
+      const idToken = await firebaseUser.getIdToken();
+      
+      // Sync with backend to get JWT token
+      const response = await apiClient.post('/api/firebase/verify-token', {
+        id_token: idToken,
+        firebase_uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        displayName: firebaseUser.displayName
+      });
+      
+      if (response.data.success) {
+        const { jwt_token } = response.data.data;
+        await tokenService.setTokens(jwt_token, jwt_token);
+        
+        // Update current user state
+        this.currentUser = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          ...firebaseUser
+        };
+        this.isAuthenticated = true;
+        this.notifyListeners();
+        
+        console.log('✅ Firebase user synced with backend successfully');
+        return {
+          user: this.currentUser,
+          token: jwt_token,
+          success: true
+        };
+      } else {
+        throw new Error('Backend sync failed');
+      }
+    } catch (error) {
+      console.error('❌ Firebase user sync error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Cleanup method to remove listeners
+   */
+  cleanup() {
+    console.log('🧹 Cleaning up auth service...');
+    this.listeners = [];
+    this.initializationPromise = null;
   }
 }
 

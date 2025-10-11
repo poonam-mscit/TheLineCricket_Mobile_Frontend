@@ -33,12 +33,22 @@ const initialState = {
     total: 0
   },
   
-  // Filters
+  // Filters - matches database matches table columns
   filters: {
-    match_type: null,
-    location: null,
-    skill_level: null,
-    date_range: null
+    match_type: null, // MATCHTYPE NOT NULL
+    match_format: null, // MATCHFORMAT NOT NULL
+    location: null, // VARCHAR(200) NOT NULL
+    skill_level: null, // VARCHAR(50)
+    date_range: null,
+    status: null, // MATCHSTATUS
+    weather: null, // VARCHAR(20) DEFAULT 'unknown'
+    is_public: null, // BOOLEAN
+    equipment_provided: null, // BOOLEAN
+    minimum_age: null, // INTEGER(5)
+    maximum_age: null, // INTEGER(50)
+    entry_fee_min: null, // DOUBLE PRECISION
+    entry_fee_max: null, // DOUBLE PRECISION
+    price_money_amount: null // DOUBLE PRECISION
   },
   
   // Last updated timestamp
